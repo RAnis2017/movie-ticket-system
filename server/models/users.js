@@ -14,6 +14,11 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    isAdmin: {
+        type: Boolean,
+        required: true,
+        default: false,
+    },
     permissions: [{ type : mongoose.Schema.Types.ObjectId, ref: 'Permission' }],
     created_date: {
         type: Date,

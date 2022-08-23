@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react"
-import "./Login.css"
 import { connect } from "react-redux"
 import {
   GoogleSignInSuccess,
@@ -36,7 +35,9 @@ function Login(props) {
       onSuccess: (data, variables, context) => {
         setTokenAction(data.token)
         localStorage.setItem('admin', data.isAdmin);
-        navigate("/posts");
+        if(data.isAdmin) {
+          navigate("/admin/dashboard");
+        }
       }
      }
    )
@@ -58,7 +59,9 @@ function Login(props) {
     onSuccess: (data, variables, context) => {
       setTokenAction(data.token)
       localStorage.setItem('admin', data.isAdmin);
-      navigate('/posts');
+      if(data.isAdmin) {
+        navigate("/admin/dashboard");
+      }
     }
     }
   )
@@ -101,7 +104,7 @@ function Login(props) {
     <div className="flex justify-center items-center flex-row min-h-screen bg-slate-800">
       <div className="flex flex-col justify-center items-center bg-slate-700 p-10 w-4/12 rounded-xl drop-shadow-md">
         <div className="mb-2 p-10 text-lg text-white">
-          CMS Login
+          Movies Booking Login
         </div>
         <div className="w-full max-w-md">
           <div className="form-control w-full max-w-md">

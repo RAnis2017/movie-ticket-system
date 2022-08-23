@@ -11,12 +11,7 @@ const start = async () => {
 };
 
 start();
-require('./models/permissions')
 require('./models/users')
-require('./models/categories')
-require('./models/posts')
-require('./models/likes_dislikes')
-require('./models/tracking')
 
 const express = require('express')
 const app = express()

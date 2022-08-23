@@ -3,7 +3,7 @@ module.exports = {
     db: {
         user: 'Raza',
         password: '123',
-        dbName: 'cmsDb',
+        dbName: 'movieTicketsDb',
         port: '27017'
     },
     TOKEN_KEY: 'longSecretKey',
