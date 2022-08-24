@@ -1,7 +1,6 @@
 import React, { useState } from "react"
 import { connect } from "react-redux"
 import { useNavigate } from "react-router-dom"
-import { useMutation, useQuery, useQueryClient } from "react-query"
 import { faCog } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { fetchFunc } from "../utils"
@@ -18,7 +17,7 @@ function AdminDashboard(props) {
           </label>
           <ul tabIndex="0" className="dropdown-content menu p-2 mt-2 shadow bg-base-100 bg-slate-500 text-black rounded-box w-52">
             <li className="hover:text-white" onClick={() => navigate('/admin/movies')}><a>Movies</a></li>
-            <li className="hover:text-white" onClick={() => navigate('/admin/movies')}><a>Settings</a></li>
+            <li className="hover:text-white" onClick={() => navigate('/admin/settings')}><a>Settings</a></li>
           </ul>
         </div>
       </div>
