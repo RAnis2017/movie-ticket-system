@@ -142,4 +142,48 @@ router.delete('/delete-movie/:id', (req, res, next) => {
     })
 })
 
+router.get('/get-settings', (req, res, next) => {
+    let settingModel = mongoose.model('Setting');
+    settingModel.find({}, (err, settings) => {
+        if (err) {
+            console.log(err);
+            res.status(500).json({ 'message': 'Internal server error' });
+        } else {
+            res.status(200).json(settings);
+        }
+    }
+    )
+})
+
+router.get('/get-settings/:setting_type', (req, res, next) => {
+    let settingModel = mongoose.model('Setting');
+    settingModel.findOne({
+        setting_type: req.params.setting_type
+    }, (err, setting) => {
+        if (err) {
+            console.log(err);
+            res.status(500).json({ 'message': 'Internal server error' });
+        } else {
+            res.status(200).json({_id: setting._id, ...setting?.options});
+        }
+    }
+    )
+})
+
+router.put('/update-setting/:id', (req, res, next) => {
+    let settingModel = mongoose.model('Setting');
+    settingModel.updateOne({ _id: req.params.id }, {
+        options: req.body
+    }, (err, setting) => {
+        if (err) {
+            console.log(err);
+            res.status(500).json({ 'message': 'Internal server error' });
+        } else {
+            res.status(200).json({ 'message': 'Settings updated' });
+        }
+    }
+    )
+}
+)
+
 module.exports = router;

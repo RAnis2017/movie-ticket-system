@@ -13,6 +13,7 @@ const start = async () => {
 start();
 require('./models/users')
 require('./models/movies')
+require('./models/settings')
 
 const express = require('express')
 const app = express()
