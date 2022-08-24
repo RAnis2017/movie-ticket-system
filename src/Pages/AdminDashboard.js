@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { fetchFunc } from "../utils"
 
 function AdminDashboard(props) {
+  const navigate = useNavigate()
 
   return (
     <div>
@@ -16,8 +17,8 @@ function AdminDashboard(props) {
             <FontAwesomeIcon icon={faCog} />
           </label>
           <ul tabIndex="0" className="dropdown-content menu p-2 mt-2 shadow bg-base-100 bg-slate-500 text-black rounded-box w-52">
-            <li className="hover:text-white"><a>Movies</a></li>
-            <li className="hover:text-white"><a>Settings</a></li>
+            <li className="hover:text-white" onClick={() => navigate('/admin/movies')}><a>Movies</a></li>
+            <li className="hover:text-white" onClick={() => navigate('/admin/movies')}><a>Settings</a></li>
           </ul>
         </div>
       </div>

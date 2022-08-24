@@ -16,6 +16,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useGoogleLogout } from "react-google-login";
 import io from 'socket.io-client';
+import MoviesAdmin from "./Pages/MoviesAdmin";
 const socket = io();
 
 const clientId = '874157957573-9ghj35jep265q5u0ksfjr5mm22qmbb1k.apps.googleusercontent.com'
@@ -84,6 +85,7 @@ function App( ) {
           <Route path="/" element={<Login />} />
           <Route element={<AppOutlet />}>
             <Route path="admin/dashboard" element={<AdminDashboard />} />
+            <Route path="admin/movies" element={<MoviesAdmin />} />
           </Route>
           <Route path="*" element={<Login />} />
         </Routes>

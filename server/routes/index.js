@@ -54,7 +54,7 @@ router.post('/login-google', function (req, res) {
       let user = await createUser(userModel, email, name, password)
 
       const token = jwt.sign(
-        { user_id: user._id, email },
+        { user_id: user._id, email, isAdmin: user.isAdmin },
         config.TOKEN_KEY,
         {
           expiresIn: "2h",
@@ -115,7 +115,7 @@ router.post('/login', function (req, res) {
           res.status(401).json({ 'message': 'Password incorrect' });
         } else {
           const token = jwt.sign(
-            { user_id: user._id, email },
+            { user_id: user._id, email, isAdmin: user.isAdmin },
             config.TOKEN_KEY,
             {
               expiresIn: "24h",
@@ -135,6 +135,35 @@ router.post('/login', function (req, res) {
   });
 });
 
+router.get('/get-movies', (req, res, next) => {
+  let movieModel = mongoose.model('Movie');
+  let userModel = mongoose.model('User');
+  
+  movieModel.find({}).populate({ path: 'created_by', model: userModel }).exec((err, movies) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ 'message': 'Internal server error' });
+    }
+    res.status(200).json(movies);
+  })
+})
+
+router.get('/get-movie/:id', (req, res, next) => {
+  let movieModel = mongoose.model('Movie');
+  let userModel = mongoose.model('User');
+  movieModel.findById(req.params.id).populate({ path: 'created_by', model: userModel }).exec((err, movie) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ 'message': 'Internal server error' });
+    } else {
+      res.status(200).json(movie);
+    }
+  })
+})
+
+
 router.use(auth);
+
+router.use('/admin', require('./admin'));
 
 module.exports = router;
