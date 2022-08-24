@@ -12,6 +12,7 @@ const start = async () => {
 
 start();
 require('./models/users')
+require('./models/movies')
 
 const express = require('express')
 const app = express()
