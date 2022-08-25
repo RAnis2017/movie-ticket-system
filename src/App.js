@@ -18,6 +18,7 @@ import { useGoogleLogout } from "react-google-login";
 import io from 'socket.io-client';
 import MoviesAdmin from "./Pages/MoviesAdmin";
 import SettingsAdmin from "./Pages/SettingsAdmin";
+import MoviesSeatSelect from "./Pages/MoviesSeatSelect";
 const socket = io();
 
 const clientId = '874157957573-9ghj35jep265q5u0ksfjr5mm22qmbb1k.apps.googleusercontent.com'
@@ -55,6 +56,11 @@ const AppOutlet = () => {
                   <span className="">Admin Dashboard</span>
                 </button>
             </div>
+            <div className="flex items-center ml-5">
+                <button className="hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={() => navigate('/movies/select')}>
+                  <span className="">Movies Seat Select</span>
+                </button>
+            </div>
             <div className="flex items-center ml-auto">
               <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" onClick={() => signOut()}>
                 <span className="">Logout</span>
@@ -88,6 +94,7 @@ function App( ) {
             <Route path="admin/dashboard" element={<AdminDashboard />} />
             <Route path="admin/movies" element={<MoviesAdmin />} />
             <Route path="admin/settings" element={<SettingsAdmin />} />
+            <Route path="movies/select" element={<MoviesSeatSelect />} />
           </Route>
           <Route path="*" element={<Login />} />
         </Routes>

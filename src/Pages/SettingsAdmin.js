@@ -1,9 +1,8 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { connect } from "react-redux"
-import { useGoogleLogout } from 'react-google-login'
 import { useNavigate } from "react-router-dom"
 import { useMutation, useQuery, useQueryClient } from "react-query"
-import { faTrash, faPen } from "@fortawesome/free-solid-svg-icons"
+import { faChair } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { fetchFunc } from "../utils"
 const clientId = '874157957573-9ghj35jep265q5u0ksfjr5mm22qmbb1k.apps.googleusercontent.com'
@@ -15,6 +14,12 @@ function SettingsAdmin(props) {
     const [settingId, setSettingId] = useState(0)
 
     const queryClient = useQueryClient()
+
+    useEffect(() => {
+
+    }, [seatsPerRow, rows, divideSeatsBy])
+
+    const alphabets = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 
     const { isLoading: settingsLoading, isSuccess: settingsSuccess, data: settings } = useQuery('settings', () =>
         fetchFunc(`http://localhost:3001/admin/get-settings/${'movie_settings_1'}`, 'GET', {
@@ -53,37 +58,73 @@ function SettingsAdmin(props) {
         settingUpdateMutate({ seats_per_row: seatsPerRow, rows, divide_seats_by: divideSeatsBy })
     }
 
+    const getRows = () => {
+        const returnRows = []
+        for (let i = 0; i < rows; i++) {
+            returnRows.push(
+                <div key={`row-${i}`} className="flex items-center mt-5">
+                    <div className=" mr-5 text-slate-100 font-black">
+                        <h1>{alphabets[i]}</h1>
+                    </div>
+                    { seatsPerRow > 0 && getCols() }
+                </div>
+            )
+        }
+
+        return returnRows
+    }
+
+    const getCols = () => {
+        const cols = []
+        const afterDivide = seatsPerRow / (divideSeatsBy > 0 ? divideSeatsBy : 1)
+        for (let i = 1; i <= seatsPerRow; i++) {
+            cols.push(
+                <div key={`col-${i}`} className="flex flex-col mr-2 p-1 btn btn-circle bg-slate-100">
+                    <FontAwesomeIcon icon={faChair} />
+                    <span className="text-center">{i}</span>
+                </div>
+            )
+            if (i % Math.ceil(afterDivide) === 0) {
+                cols.push(<div key={`divider-${i}`} className="mr-10"></div>)
+            }
+        }
+
+        return cols
+    }
+
     return (
         <div>
-            <div className="flex justify-end">
-                <div className=" w-1/3 mt-10">
-                    <button className="btn btn-success ml-3" onClick={() => saveNewSetting()}>{isLoading ? 'Saving...' : 'Save Category'}</button>
-                </div>
-            </div>
-
-            <div className="flex justify-center mt-5 mb-10">
-                <div className="w-6/12 bg-slate-700 rounded-lg p-5 shadow-lg flex justify-center flex-row">
-                    <div className="w-full max-w-md">
-                        <div className="form-control w-full max-w-md">
+            <div className="flex justify-center mb-10">
+                <div className="w-6/12 bg-slate-700 rounded-lg p-5 shadow-lg">
+                    <div className="flex flex-row">
+                        <div className="form-control ">
                             <label className="label">
                                 <span className="label-text text-white">Seats Per Row</span>
                             </label>
-                            <input type="number" placeholder="Type here" value={seatsPerRow} onChange={(e) => setSeatsPerRow(e.target.value)} className="input input-ghost w-full max-w-md" />
+                            <input type="number" placeholder="Type here" value={seatsPerRow} onChange={(e) => setSeatsPerRow(e.target.value)} className="input input-ghost " />
                         </div>
-                        <div className="form-control w-full max-w-md">
+                        <div className="form-control ">
                             <label className="label">
                                 <span className="label-text text-white">Rows</span>
                             </label>
-                            <input type="number" placeholder="Type here" value={rows} onChange={(e) => setRows(e.target.value)} className="input input-ghost w-full max-w-md" />
+                            <input type="number" placeholder="Type here" max={26} value={rows} onChange={(e) => setRows(e.target.value)} className="input input-ghost " />
                         </div>
-                        <div className="form-control w-full max-w-md">
+                        <div className="form-control ">
                             <label className="label">
                                 <span className="label-text text-white">Divide Seats By</span>
                             </label>
-                            <input type="number" placeholder="Type here" value={divideSeatsBy} onChange={(e) => setDivideSeatsBy(e.target.value)} className="input input-ghost w-full max-w-md" />
+                            <input type="number" placeholder="Type here" value={divideSeatsBy} onChange={(e) => setDivideSeatsBy(e.target.value)} className="input input-ghost " />
                         </div>
                     </div>
+                    <div className="flex justify-end mt-5">
+                    <button className="btn btn-success" onClick={() => saveNewSetting()}>{isLoading ? 'Saving...' : 'Save Settings'}</button>
+                    </div>
                 </div>
+            </div>
+            <div className="flex items-center flex-col">
+                {
+                    rows > 0 && getRows(rows)
+                }
             </div>
         </div>
     )
