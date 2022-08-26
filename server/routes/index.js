@@ -61,6 +61,7 @@ router.post('/login-google', function (req, res) {
         }
       );
       let loggedInUser = {
+        name: user.name,
         token,
         isAdmin: user.isAdmin,
         email
@@ -83,6 +84,7 @@ router.post('/login-google', function (req, res) {
         );
 
         let loggedInUser = {
+          name: user.name,
           token,
           email,
           isAdmin: user.isAdmin,
@@ -123,6 +125,7 @@ router.post('/login', function (req, res) {
           );
 
           let loggedInUser = {
+            name: user.name,
             token,
             email,
             isAdmin: user.isAdmin,

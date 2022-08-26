@@ -29,11 +29,11 @@ const Table = ({ data, editCall, deleteCall }) => {
                 <tbody className="">
                     {data?.length && data?.map(item => (
                         <tr key={item._id}>
-                            <td className="truncate max-w-[200px]" title={item.title}>{item.title}</td>
-                            <td className="truncate max-w-[100px]" title={item.director}>{item.director}</td>
-                            <td className="truncate max-w-[100px]" title={item.release_date}>{item.release_date}</td>
-                            <td className="truncate max-w-[100px]" title={item.category}>{item.category}</td>
-                            <td className="truncate max-w-xs">
+                            <td className="truncate" title={item.title}>{item.title}</td>
+                            <td className="truncate" title={item.director}>{item.director}</td>
+                            <td className="truncate" title={item.release_date}>{item.release_date}</td>
+                            <td className="truncate" title={item.category}>{item.category}</td>
+                            <td className="truncate">
                                 <a className="btn btn-sm btn-circle" title={item.image_url?.[0]} href={`http://localhost:3001/${item.image_urls?.[0]}`} target="_blank">
                                     <FontAwesomeIcon icon={faImage} className="text-blue-400" />
                                 </a>
@@ -244,15 +244,8 @@ function MoviesAdmin(props) {
 
     return (
         <div className="text-gray-700 min-h-screen">
-            <div className="flex justify-around flex-row flex-wrap">
-                <div className=" h-80 overflow-scroll flex flex-col justify-center items-center">
-                    <h1 className="mb-5">Movies</h1>
-                    <Table data={movies} editCall={editCall} deleteCall={deleteCall} />
-                </div>
-            </div>
-
             <div className="flex justify-end">
-                <div className=" w-1/3 mt-10">
+                <div className="mt-5 mr-5">
                     {
                         addMovieClicked ?
                             <button className="btn btn-success" onClick={() => saveNewMovie()}>{movieIsLoading ? 'Saving...' : isMovieUpdating ? 'Update Movie' : 'Save Movie'}</button>
@@ -319,7 +312,13 @@ function MoviesAdmin(props) {
                         </div>
                     </div>
                     :
-                    <></>
+                    <>
+                    <div className="flex justify-around flex-row flex-wrap">
+                        <div className="overflow-scroll flex flex-col justify-center items-center">
+                            <Table data={movies} editCall={editCall} deleteCall={deleteCall} />
+                        </div>
+                    </div>
+                    </>
             }
         </div>
     )

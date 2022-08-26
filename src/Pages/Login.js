@@ -34,7 +34,9 @@ function Login(props) {
      ), {
       onSuccess: (data, variables, context) => {
         setTokenAction(data.token)
+        localStorage.setItem('email', data.email);
         localStorage.setItem('admin', data.isAdmin);
+        localStorage.setItem('username', data?.name);
         if(data.isAdmin) {
           navigate("/admin/dashboard");
         }
@@ -58,7 +60,9 @@ function Login(props) {
     ), {
     onSuccess: (data, variables, context) => {
       setTokenAction(data.token)
+      localStorage.setItem('email', data.email);
       localStorage.setItem('admin', data.isAdmin);
+      localStorage.setItem('username', data?.name);
       if(data.isAdmin) {
         navigate("/admin/dashboard");
       }
@@ -69,6 +73,7 @@ function Login(props) {
   useEffect(() => {
     let token = localStorage.getItem('token')
     let emailL = localStorage.getItem('email')
+    
     if(token) {
       setTokenAction(token)
       googleSignInSuccess(emailL)
