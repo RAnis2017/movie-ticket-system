@@ -72,7 +72,7 @@ function Login(props) {
     if(token) {
       setTokenAction(token)
       googleSignInSuccess(emailL)
-      navigate('/admin/posts');
+      navigate('/admin/dashboard');
     }
 
     function start() {
@@ -101,30 +101,30 @@ function Login(props) {
   }
 
   return (
-    <div className="flex justify-center items-center flex-row min-h-screen bg-slate-800">
-      <div className="flex flex-col justify-center items-center bg-slate-700 p-10 w-4/12 rounded-xl drop-shadow-md">
-        <div className="mb-2 p-10 text-lg text-white">
+    <div className="flex justify-center items-center flex-row min-h-screen bg-gradient-to-tl from-transparent via-red-300 to-violet-300">
+      <div className="flex flex-col justify-center items-center  bg-white bg-opacity-20 backdrop-blur-lg rounded-xl drop-shadow-md  p-10 w-4/12">
+        <div className="mb-2 p-10 text-lg text-gray-700 font-bold text-2xl ">
           Movies Booking Login
         </div>
         <div className="w-full max-w-md">
           <div className="form-control w-full max-w-md">
             <label className="label">
-              <span className="label-text text-white">Email</span>
+              <span className="label-text text-gray-700">Email</span>
             </label>
             <input type="text" placeholder="Type here" value={emailField} onChange={(e) => setEmailField((prev) => e.target.value)} className="input input-ghost w-full max-w-md" />
           </div>
           <div className="form-control w-full max-w-md">
             <label className="label">
-              <span className="label-text text-white">Password</span>
+              <span className="label-text text-gray-700">Password</span>
             </label>
             <input type="password" placeholder="Type here" value={passwordField} onChange={(e) => setPasswordField((prev) => e.target.value)}  className="input input-ghost w-full max-w-md" />
           </div>
         </div>
         <button className="btn btn-accent mt-5" onClick={() => manualLogin()}>Login</button>
-        <GoogleLogin className="btn btn-ghost mt-5 text-white" clientId={clientID} buttonText='Google Login' onSuccess={onSuccess} onFailure={onFailure} isSignedIn={true} cookiePolicy={'single_host_origin'}></GoogleLogin>
+        <GoogleLogin className="btn btn-ghost mt-5 text-gray-700" clientId={clientID} buttonText='Google Login' onSuccess={onSuccess} onFailure={onFailure} isSignedIn={true} cookiePolicy={'single_host_origin'}></GoogleLogin>
         {
           isLoadingGoogle || isLoadingManual ?
-          <div className="text-white mt-5">Loading...</div>
+          <div className="text-gray-700 mt-5">Loading...</div>
           : <></>
         }
       </div>

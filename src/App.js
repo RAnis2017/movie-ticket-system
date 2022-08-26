@@ -19,6 +19,9 @@ import io from 'socket.io-client';
 import MoviesAdmin from "./Pages/MoviesAdmin";
 import SettingsAdmin from "./Pages/SettingsAdmin";
 import MoviesSeatSelect from "./Pages/MoviesSeatSelect";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCamera, faCog, faLockOpen } from "@fortawesome/free-solid-svg-icons";
+
 const socket = io();
 
 const clientId = '874157957573-9ghj35jep265q5u0ksfjr5mm22qmbb1k.apps.googleusercontent.com'
@@ -56,21 +59,39 @@ const AppOutlet = () => {
                   <span className="">Admin Dashboard</span>
                 </button>
             </div>
-            <div className="flex items-center ml-auto">
-              <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={() => signOut()}>
-                <span className="">Logout</span>
-              </button>
-            </div>
           </nav>
         </header>
-        <main className="">
-          <Outlet />
-        </main>
-        {/* <footer class="fixed inset-x-0 bottom-0 bg-gray-800">
-          <div className="flex justify-center items-center h-full">
-            <span className="text-gray-700 text-center m-5">React CMS</span>
+        <div className="w-full flex">
+            <div className="w-64 sm:w-1/2 md:w-64 h-100 bg-gray-900 shadow sm:shadow-md md:shadow-lg lg:shadow-xl xl:shadow-2xl border border-gray-900">
+              <img src="https://via.placeholder.com/400x400"
+                alt="alt placeholder" className="w-10 h-10 mx-auto mb-5 rounded-full" />
+
+              <ul className="text-gray-400">
+                <li className="block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-100">
+                  <a className="flex items-center" onClick={() => navigate('/admin/movies')}>
+                    <FontAwesomeIcon icon={faCamera} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
+                    <span>Movies</span>
+                  </a>
+                </li>
+                <li className="block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-300">
+                  <a className="flex items-center" onClick={() => navigate('/admin/settings')}>
+                    <FontAwesomeIcon icon={faCog} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
+                    <span>Settings</span>
+                  </a>
+                </li>
+                <li className="block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-300">
+                  <a className="flex items-center" onClick={() => signOut()}>
+                    <FontAwesomeIcon icon={faLockOpen} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
+                    <span>Logout</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <main className="w-full h-full min-h-screen">
+              <Outlet />
+            </main>
           </div>
-        </footer> */}
+        
       </div>
     </>
   );
