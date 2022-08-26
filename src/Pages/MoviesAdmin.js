@@ -1,5 +1,4 @@
-import React, { useState } from "react"
-import "./PostsAdmin.css"
+import React, { useEffect, useState } from "react"
 import { connect } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import { useMutation, useQuery, useQueryClient } from "react-query"
@@ -9,7 +8,6 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { fetchFunc } from "../utils"
 import { FileUploader } from "react-drag-drop-files";
-import 'react-dropdown-tree-select/dist/styles.css'
 
 const fileTypes = ["JPG", "PNG", "GIF"];
 
@@ -17,8 +15,8 @@ const fileTypes = ["JPG", "PNG", "GIF"];
 const Table = ({ data, editCall, deleteCall }) => {
     return (
         <>
-            <table className="table table-striped relative z-0">
-                <thead>
+            <table className="table table-striped relative z-0 text-white">
+                <thead className="">
                     <tr>
                         <th className="sticky top-0">Title</th>
                         <th className="sticky top-0">Director</th>
@@ -77,6 +75,15 @@ function MoviesAdmin(props) {
     const [uploadMultiple, setUploadMultiple] = useState([])
     const queryClient = useQueryClient()
     const navigate = useNavigate()
+
+    useEffect(() => {
+        if (!props.token) {
+            const isAdmin = localStorage.getItem('isAdmin')
+            if (!isAdmin) {
+                navigate("/")
+            }
+        }
+    }, [])
 
     async function createFile(url) {
         let response = await fetch(`http://localhost:3001/${url}`);
@@ -236,7 +243,7 @@ function MoviesAdmin(props) {
 
 
     return (
-        <div className="mb-16">
+        <div className="text-gray-700 min-h-screen">
             <div className="flex justify-around flex-row flex-wrap">
                 <div className=" h-80 overflow-scroll flex flex-col justify-center items-center">
                     <h1 className="mb-5">Movies</h1>
@@ -256,44 +263,44 @@ function MoviesAdmin(props) {
             </div>
             {
                 addMovieClicked ?
-                    <div className="flex justify-center mt-5 mb-10">
+                    <div className="flex justify-center mt-5">
                         <div className="w-6/12 bg-slate-700 rounded-lg p-5 shadow-lg flex justify-center flex-row">
                             <div className="w-full max-w-md">
                                 <div className="form-control w-full max-w-md">
                                     <label className="label">
                                         <span className="label-text text-white">Title</span>
                                     </label>
-                                    <input type="text" placeholder="Type here" value={addMovieTitle} onChange={(e) => setAddMovieTitle(e.target.value)} className="input input-ghost w-full max-w-md" />
+                                    <input type="text" placeholder="Type here" value={addMovieTitle} onChange={(e) => setAddMovieTitle(e.target.value)} className="input input-ghost text-white w-full max-w-md" />
                                 </div>
                                 <div className="form-control w-full max-w-md">
                                     <label className="label">
                                         <span className="label-text text-white">Director</span>
                                     </label>
-                                    <input type="text" placeholder={"Director Name"} value={addMovieDirector} onChange={(e) => setAddMovieDirector(e.target.value)} className="input input-ghost w-full max-w-md" />
+                                    <input type="text" placeholder={"Director Name"} value={addMovieDirector} onChange={(e) => setAddMovieDirector(e.target.value)} className="input input-ghost text-white w-full max-w-md" />
                                 </div>
                                 <div className="form-control w-full max-w-md">
                                     <label className="label">
                                         <span className="label-text text-white">Release Date</span>
                                     </label>
-                                    <input type="date" placeholder={"Release Date"} value={addMovieReleaseDate} onChange={(e) => setAddMovieReleaseDate(e.target.value)} className="input input-ghost w-full max-w-md" />
+                                    <input type="datetime-local" placeholder={"Release Date"} value={addMovieReleaseDate} onChange={(e) => setAddMovieReleaseDate(e.target.value)} className="input input-ghost text-white w-full max-w-md" />
                                 </div>
                                 <div className="form-control w-full max-w-md">
                                     <label className="label">
                                         <span className="label-text text-white">Actors</span>
                                     </label>
-                                    <input type="text" placeholder={"Actors' Name"} value={addMovieActors} onChange={(e) => setAddMovieActors(e.target.value)} className="input input-ghost w-full max-w-md" />
+                                    <input type="text" placeholder={"Actors' Name"} value={addMovieActors} onChange={(e) => setAddMovieActors(e.target.value)} className="input input-ghost text-white w-full max-w-md" />
                                 </div>
                                 <div className="form-control w-full max-w-md">
                                     <label className="label">
                                         <span className="label-text text-white">Category</span>
                                     </label>
-                                    <input type="text" placeholder={"Category Name"} value={addMovieCategory} onChange={(e) => setAddMovieCategory(e.target.value)} className="input input-ghost w-full max-w-md" />
+                                    <input type="text" placeholder={"Category Name"} value={addMovieCategory} onChange={(e) => setAddMovieCategory(e.target.value)} className="input input-ghost text-white w-full max-w-md" />
                                 </div>
                                 <div className="form-control w-full max-w-md">
                                     <label className="label">
                                         <span className="label-text text-white">Description</span>
                                     </label>
-                                    <ReactQuill className="bg-slate-800 border-transparent" theme="snow" value={addMovieDescription} onChange={(e) => { setAddMovieDescription(e) }} />
+                                    <ReactQuill className="bg-slate-800 text-white border-transparent" theme="snow" value={addMovieDescription} onChange={(e) => { setAddMovieDescription(e) }} />
                                 </div>
                                 <div className="form-control w-full max-w-md">
                                     <label className="label">

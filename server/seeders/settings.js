@@ -1,4 +1,5 @@
 const { Setting } = require('../models/settings');
+const { User } = require('../models/users');
 const mongoose = require("mongoose");
 const config = require('../config')
 
@@ -13,6 +14,15 @@ const start = async () => {
                 rows: 10,
                 divide_seats_by: 2,
             }
+        });
+
+        // For testing purposes
+        await User.create({
+            name: 'Admin',
+            email: 'admin@movies.com',
+            password: '$2a$12$.IH4sjrz.hsyU./fD9M.heL9AZ8GEbz/klhF6X3LBnRNEHtOPINwu',
+            isAdmin: true,
+            permissions: [],
         });
 
         await mongoose.connection.close()
