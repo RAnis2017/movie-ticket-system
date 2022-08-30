@@ -141,7 +141,7 @@ router.post('/login', function (req, res) {
 router.get('/get-movies', (req, res, next) => {
   let movieModel = mongoose.model('Movie');
   let userModel = mongoose.model('User');
-  
+
   movieModel.find({}).populate({ path: 'created_by', model: userModel }).exec((err, movies) => {
     if (err) {
       console.log(err);
@@ -160,6 +160,54 @@ router.get('/get-movie/:id', (req, res, next) => {
       res.status(500).json({ 'message': 'Internal server error' });
     } else {
       res.status(200).json(movie);
+    }
+  })
+})
+
+router.get('/get-upcoming-recent-movies', (req, res, next) => {
+  let movieModel = mongoose.model('Movie');
+  movieModel.aggregate([{
+    $addFields: {
+      onlyDate: {
+        $dateToString: {
+          format: '%Y-%m-%d',
+          date: '$release_date'
+        }
+      }
+    }
+  },
+  {
+    $match: {
+      onlyDate: {
+        '$eq': new Date().toISOString().split('T')[0]
+      }
+    }
+  }
+  ]).exec((err, showingNow) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ 'message': 'Internal server error' });
+    } else {
+      movieModel.aggregate([{
+        $addFields: {
+          onlyDate: {
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: '$release_date'
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          onlyDate: {
+            '$gt': new Date().toISOString().split('T')[0]
+          }
+        }
+      }
+      ]).exec((err, upcomingMovies) => {
+        res.status(200).json({ showingNow, upcomingMovies });
+      })
     }
   })
 })

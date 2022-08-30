@@ -21,6 +21,8 @@ import SettingsAdmin from "./Pages/SettingsAdmin";
 import MoviesSeatSelect from "./Pages/MoviesSeatSelect";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCamera, faCog, faLockOpen } from "@fortawesome/free-solid-svg-icons";
+import Visitors from "./Pages/Visitors";
+import MoviePage from "./Pages/MoviePage";
 
 const socket = io();
 
@@ -105,11 +107,13 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-violet-200">
+      <div className="min-h-screen bg-violet-100">
 
         <ToastContainer limit={1} />
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/movies" element={<Visitors />} />
+          <Route path="/movies/:id" element={<MoviePage />} />
           <Route element={<AppOutlet />}>
             <Route path="admin/dashboard" element={<AdminDashboard />} />
             <Route path="admin/movies" element={<MoviesAdmin />} />
