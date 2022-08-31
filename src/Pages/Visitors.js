@@ -82,7 +82,7 @@ function Visitors(props) {
                 </div>
                 <div className="flex" id="now-showing">
                     {
-                       movies?.['showingNow']?.length &&movies['showingNow'].map((movie) => (
+                       movies?.['showingNow']?.length ? movies['showingNow'].map((movie) => (
                             <>
                                 <div className="w-1/4 ml-6 mt-3 bg-white rounded-lg m-h-64 p-2 transform hover:scale-105 hover:shadow-xl transition duration-300" key={movie._id} onClick={() => navigate('/movies/'+movie._id)}>
                                     <figure className="mb-2">
@@ -105,7 +105,12 @@ function Visitors(props) {
                                     </div>
                                 </div>
                             </>
-                        ))
+                        )) : 
+                        <div className="w-full flex">
+                            <div className="text-lg ml-6 text-gray-600 font-light">
+                                No now showing movies found
+                            </div>
+                        </div>
                     }
 
                 </div>
@@ -117,7 +122,7 @@ function Visitors(props) {
                 </div>
                 <div className="flex" id="upcoming-movies">
                     {
-                        movies?.['upcomingMovies']?.length && movies['upcomingMovies'].map((movie) => (
+                        movies?.['upcomingMovies']?.length ? movies['upcomingMovies'].map((movie) => (
                             <>
                                 <div className="w-1/4 ml-6 mt-3 bg-white rounded-lg m-h-64 p-2 transform hover:scale-105 hover:shadow-xl transition duration-300" key={movie._id} onClick={() => navigate('/movies/'+movie._id)}>
                                     <figure className="mb-2">
@@ -140,7 +145,13 @@ function Visitors(props) {
                                     </div>
                                 </div>
                             </>
-                        ))
+                        )) :
+                        <div className="w-full flex">
+                            <div className="text-lg ml-6 text-gray-600 font-light">
+                                No upcoming movies found
+                            </div>
+                        </div>
+
                     }
 
                 </div>

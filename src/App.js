@@ -114,6 +114,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/movies" element={<Visitors />} />
           <Route path="/movies/:id" element={<MoviePage />} />
+          <Route path="/movies/buy/:id" element={<MoviesSeatSelect />} />
           <Route element={<AppOutlet />}>
             <Route path="admin/dashboard" element={<AdminDashboard />} />
             <Route path="admin/movies" element={<MoviesAdmin />} />

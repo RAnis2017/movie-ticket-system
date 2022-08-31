@@ -22,7 +22,7 @@ function SettingsAdmin(props) {
     const alphabets = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 
     const { isLoading: settingsLoading, isSuccess: settingsSuccess, data: settings } = useQuery('settings', () =>
-        fetchFunc(`http://localhost:3001/admin/get-settings/${'movie_settings_1'}`, 'GET', {
+        fetchFunc(`http://localhost:3001/get-settings/${'movie_settings_1'}`, 'GET', {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
             'x-access-token': localStorage.getItem('token'),

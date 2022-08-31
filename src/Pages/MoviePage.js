@@ -12,10 +12,10 @@ function MoviePage(props) {
     const params = useParams()
 
     useEffect(() => {
-        
+
     }, [])
 
-    const { isLoading: moviesLoading, isSuccess: moviesSuccess, data: movies } = useQuery('movies', () =>
+    const { isLoading: movieLoading, isSuccess: movieSuccess, data: movie } = useQuery('movies', () =>
         fetchFunc(`http://localhost:3001/get-movie/${params.id}`, 'GET', {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -60,6 +60,63 @@ function MoviePage(props) {
                 </div>
             </nav>
 
+            <div className="flex justify-center items-center">
+                <div className="w-2/3 mt-10">
+                    <div className="flex justify-start bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+                        <div className="max-w-md">
+                            <h1 className="text-4xl font-bold text-slate-500 mb-2">{movie?.title}</h1>
+                            <div className="text-gray-500 mb-4">
+                                <span>{movie?.category}</span>
+                                <span className="mx-2">•</span>
+                                <span>{movie?.duration ? movie?.duration : '4h 13m'}</span>
+                                <span className="mx-2">•</span>
+                                {
+                                    movie?.release_date ?
+                                    <span>{new Date(movie?.release_date).getFullYear()}</span>
+                                    : <></>
+                                }
+                            </div>
+                            <div className="flex">
+                                <img src={`http://localhost:3001/${movie?.image_urls?.[0]}`} alt="movie" />
+                                <div className="mb-4 mx-4 text-gray-500">
+                                    <div className="tags flex">
+                                        {
+                                            ['Action', 'Adventure', 'Comedy'].map((tag, index) => {
+                                                return (
+                                                    <button key={index} className="btn btn-xs mr-2">{tag}</button>
+                                                )
+                                            }
+                                            )
+                                        }
+                                    </div>
+                                    {
+                                        movie?.description?.length ?
+                                        <div className="mt-4" dangerouslySetInnerHTML={{ __html: movie?.description }} />
+                                        : ''
+                                    }
+
+                                    <div className="creator mt-2">
+                                        <span className="text-xl mr-2">Director:</span>
+                                        <span>{ movie?.director }</span>
+                                    </div>
+
+                                    <div className="actors mt-2">
+                                        <span className="text-xl mr-2">Actors:</span>
+                                        <span>{ movie?.actors }</span>
+                                    </div>
+
+                                    <button className="btn btn-sm btn-primary mt-4" onClick={() => navigate('/movies/buy/'+movie._id)}>Buy Tickets</button>
+                                    
+                                    <div className="tickets-count mt-4">
+                                        <span className="text-xl mr-2">Tickets:</span>
+                                        <span className="text-2xl animate-pulse text-red-400 font-bold">{ movie?.tickets_count ? movie?.tickets_count : 78 }</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }
