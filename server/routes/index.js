@@ -61,6 +61,7 @@ router.post('/login-google', function (req, res) {
         }
       );
       let loggedInUser = {
+        name: user.name,
         token,
         isAdmin: user.isAdmin,
         email
@@ -83,6 +84,7 @@ router.post('/login-google', function (req, res) {
         );
 
         let loggedInUser = {
+          name: user.name,
           token,
           email,
           isAdmin: user.isAdmin,
@@ -123,6 +125,7 @@ router.post('/login', function (req, res) {
           );
 
           let loggedInUser = {
+            name: user.name,
             token,
             email,
             isAdmin: user.isAdmin,
@@ -138,7 +141,7 @@ router.post('/login', function (req, res) {
 router.get('/get-movies', (req, res, next) => {
   let movieModel = mongoose.model('Movie');
   let userModel = mongoose.model('User');
-  
+
   movieModel.find({}).populate({ path: 'created_by', model: userModel }).exec((err, movies) => {
     if (err) {
       console.log(err);
@@ -161,6 +164,68 @@ router.get('/get-movie/:id', (req, res, next) => {
   })
 })
 
+router.get('/get-upcoming-recent-movies', (req, res, next) => {
+  let movieModel = mongoose.model('Movie');
+  movieModel.aggregate([{
+    $addFields: {
+      onlyDate: {
+        $dateToString: {
+          format: '%Y-%m-%d',
+          date: '$release_date'
+        }
+      }
+    }
+  },
+  {
+    $match: {
+      onlyDate: {
+        '$eq': new Date().toISOString().split('T')[0]
+      }
+    }
+  }
+  ]).exec((err, showingNow) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ 'message': 'Internal server error' });
+    } else {
+      movieModel.aggregate([{
+        $addFields: {
+          onlyDate: {
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: '$release_date'
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          onlyDate: {
+            '$gt': new Date().toISOString().split('T')[0]
+          }
+        }
+      }
+      ]).exec((err, upcomingMovies) => {
+        res.status(200).json({ showingNow, upcomingMovies });
+      })
+    }
+  })
+})
+
+router.get('/get-settings/:setting_type', (req, res, next) => {
+  let settingModel = mongoose.model('Setting');
+  settingModel.findOne({
+      setting_type: req.params.setting_type
+  }, (err, setting) => {
+      if (err) {
+          console.log(err);
+          res.status(500).json({ 'message': 'Internal server error' });
+      } else {
+          res.status(200).json({_id: setting._id, ...setting?.options});
+      }
+  }
+  )
+})
 
 router.use(auth);
 

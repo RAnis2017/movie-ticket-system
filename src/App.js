@@ -21,6 +21,8 @@ import SettingsAdmin from "./Pages/SettingsAdmin";
 import MoviesSeatSelect from "./Pages/MoviesSeatSelect";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCamera, faCog, faLockOpen } from "@fortawesome/free-solid-svg-icons";
+import Visitors from "./Pages/Visitors";
+import MoviePage from "./Pages/MoviePage";
 
 const socket = io();
 
@@ -31,6 +33,7 @@ const AppOutlet = () => {
   const onLogoutSuccess = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('email')
+    localStorage.removeItem('username')
     localStorage.removeItem('admin')
     navigate('/')
   }
@@ -55,57 +58,63 @@ const AppOutlet = () => {
               <h1 className="ml-2 font-extrabold text-transparent text-2xl bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">iMovies</h1>
             </div>
             <div className="flex items-center ml-5">
-                <button className="hover:bg-gray-700 text-gray-700 hover:text-white font-bold py-2 px-4 rounded" onClick={() => navigate('/admin/dashboard')}>
-                  <span className="">Admin Dashboard</span>
-                </button>
+              <button className="hover:bg-gray-700 text-gray-700 hover:text-white font-bold py-2 px-4 rounded" onClick={() => navigate('/admin/dashboard')}>
+                <span className="">Admin Dashboard</span>
+              </button>
             </div>
           </nav>
         </header>
         <div className="w-full flex">
-            <div className="w-64 sm:w-1/2 md:w-64 h-100 bg-gray-900 shadow sm:shadow-md md:shadow-lg lg:shadow-xl xl:shadow-2xl border border-gray-900">
+          <div className="w-64 sm:w-1/2 md:w-64 h-100 bg-gray-900 shadow sm:shadow-md md:shadow-lg lg:shadow-xl xl:shadow-2xl border border-gray-900">
+            <div className="flex flex-col items-center mt-5 mb-5">
               <img src="https://via.placeholder.com/400x400"
-                alt="alt placeholder" className="w-10 h-10 mx-auto mb-5 rounded-full" />
-
-              <ul className="text-gray-400">
-                <li className="block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-100">
-                  <a className="flex items-center" onClick={() => navigate('/admin/movies')}>
-                    <FontAwesomeIcon icon={faCamera} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
-                    <span>Movies</span>
-                  </a>
-                </li>
-                <li className="block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-300">
-                  <a className="flex items-center" onClick={() => navigate('/admin/settings')}>
-                    <FontAwesomeIcon icon={faCog} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
-                    <span>Settings</span>
-                  </a>
-                </li>
-                <li className="block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-300">
-                  <a className="flex items-center" onClick={() => signOut()}>
-                    <FontAwesomeIcon icon={faLockOpen} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
-                    <span>Logout</span>
-                  </a>
-                </li>
-              </ul>
+                alt="alt placeholder" className="w-10 h-10 mb-2 rounded-full" />
+              <span>{localStorage.getItem('username')}</span>
+              <span>{localStorage.getItem('email')}</span>
             </div>
-            <main className="w-full h-full min-h-screen">
-              <Outlet />
-            </main>
+            <ul className="text-gray-400">
+              <li className="block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-100">
+                <a className="flex items-center" onClick={() => navigate('/admin/movies')}>
+                  <FontAwesomeIcon icon={faCamera} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
+                  <span>Movies</span>
+                </a>
+              </li>
+              <li className="block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-300">
+                <a className="flex items-center" onClick={() => navigate('/admin/settings')}>
+                  <FontAwesomeIcon icon={faCog} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
+                  <span>Settings</span>
+                </a>
+              </li>
+              <li className="block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-300">
+                <a className="flex items-center" onClick={() => signOut()}>
+                  <FontAwesomeIcon icon={faLockOpen} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
+                  <span>Logout</span>
+                </a>
+              </li>
+            </ul>
           </div>
-        
+          <main className="w-full h-full min-h-screen">
+            <Outlet />
+          </main>
+        </div>
+
       </div>
     </>
   );
 };
 
-function App( ) {
+function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-violet-200">
+      <div className="min-h-screen bg-violet-100">
 
         <ToastContainer limit={1} />
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/movies" element={<Visitors />} />
+          <Route path="/movies/:id" element={<MoviePage />} />
+          <Route path="/movies/buy/:id" element={<MoviesSeatSelect />} />
           <Route element={<AppOutlet />}>
             <Route path="admin/dashboard" element={<AdminDashboard />} />
             <Route path="admin/movies" element={<MoviesAdmin />} />
