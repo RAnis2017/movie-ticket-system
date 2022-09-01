@@ -14,6 +14,18 @@ const MovieSchema = new mongoose.Schema({
         type: Date,
         required: true,
     },
+    duration: {
+        type: String,
+        required: true,
+    },
+    tags: {
+        type: String,
+        required: true,
+    },
+    trailer: {
+        type: String,
+        required: true,
+    },
     category: {
         type: String,
         required: true,

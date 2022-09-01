@@ -112,7 +112,7 @@ function App() {
         <ToastContainer limit={1} />
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/movies" element={<Visitors />} />
+          <Route path="/" element={<Visitors />} />
           <Route path="/movies/:id" element={<MoviePage />} />
           <Route path="/movies/buy/:id" element={<MoviesSeatSelect />} />
           <Route element={<AppOutlet />}>

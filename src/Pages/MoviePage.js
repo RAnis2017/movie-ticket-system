@@ -32,6 +32,32 @@ function MoviePage(props) {
 
     const navigate = useNavigate()
 
+    const YoutubeEmbed = ({ embedId }) => (
+        <div className="video-responsive" style={{
+            overflow: 'hidden',
+            paddingBottom: '56.25%',
+            position: 'relative',
+            height: 0,
+        }}>
+          <iframe
+            width="853"
+            height="480"
+            style={{
+                left: 0,
+                top: 0,
+                height: '100%',
+                width: '100%',
+                position: 'absolute',
+            }}
+            src={`https://www.youtube.com/embed/${embedId}`}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            title="Embedded youtube"
+          />
+        </div>
+      );
+
     return (
         <div>
             <nav className="flex items-center justify-between flex-wrap bg-teal-500 p-6">
@@ -46,16 +72,16 @@ function MoviePage(props) {
                 </div>
                 <div className="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
                     <div className="text-sm lg:flex-grow">
-                        <a onClick={() => navigate('/movies#now-showing')} className="block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
+                        <a onClick={() => navigate('/#now-showing')} className="block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
                             Now Showing
                         </a>
-                        <a onClick={() => navigate('/movies#upcoming-movies')} className="block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
+                        <a onClick={() => navigate('/#upcoming-movies')} className="block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
                             Upcoming Movies
                         </a>
                     </div>
                     <div>
                         <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0 mr-2">Signup</button>
-                        <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0">Login</button>
+                        <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0" onClick={() => navigate('/login')}>Login</button>
                     </div>
                 </div>
             </nav>
@@ -63,7 +89,7 @@ function MoviePage(props) {
             <div className="flex justify-center items-center">
                 <div className="w-2/3 mt-10">
                     <div className="flex justify-start bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-                        <div className="max-w-md">
+                        <div className="">
                             <h1 className="text-4xl font-bold text-slate-500 mb-2">{movie?.title}</h1>
                             <div className="text-gray-500 mb-4">
                                 <span>{movie?.category}</span>
@@ -77,11 +103,12 @@ function MoviePage(props) {
                                 }
                             </div>
                             <div className="flex">
-                                <img src={`http://localhost:3001/${movie?.image_urls?.[0]}`} alt="movie" />
+                                <img src={`http://localhost:3001/${movie?.image_urls?.[0]}`} alt="movie" className="max-w-md"/>
                                 <div className="mb-4 mx-4 text-gray-500">
-                                    <div className="tags flex">
+                                    <YoutubeEmbed embedId={movie?.trailer} />
+                                    <div className="tags flex mt-4">
                                         {
-                                            ['Action', 'Adventure', 'Comedy'].map((tag, index) => {
+                                            movie?.tags?.split(',').map((tag, index) => {
                                                 return (
                                                     <button key={index} className="btn btn-xs mr-2">{tag}</button>
                                                 )

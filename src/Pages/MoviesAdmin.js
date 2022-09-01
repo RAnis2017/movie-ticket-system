@@ -71,6 +71,9 @@ function MoviesAdmin(props) {
     const [addMovieDescription, setAddMovieDescription] = useState('')
     const [addMovieCategory, setAddMovieCategory] = useState('')
     const [addMovieImage, setAddMovieImage] = useState('')
+    const [addMovieDuration, setAddMovieDuration] = useState('')
+    const [addMovieTags, setAddMovieTags] = useState('')
+    const [addMovieTrailer, setAddMovieTrailer] = useState('')
     const [isMovieUpdating, setIsMovieUpdating] = useState(false)
     const [uploadMultiple, setUploadMultiple] = useState([])
     const queryClient = useQueryClient()
@@ -80,7 +83,7 @@ function MoviesAdmin(props) {
         if (!props.token) {
             const isAdmin = localStorage.getItem('isAdmin')
             if (!isAdmin) {
-                navigate("/")
+                navigate("/login")
             }
         }
     }, [])
@@ -124,6 +127,9 @@ function MoviesAdmin(props) {
                 setAddMovieDescription('')
                 setAddMovieCategory('')
                 setAddMovieImage('')
+                setAddMovieDuration('')
+                setAddMovieTags('')
+                setAddMovieTrailer('')
                 setUploadMultiple([])
             }
         }
@@ -140,9 +146,12 @@ function MoviesAdmin(props) {
         setAddMovieTitle(movies.find(movie => movie._id === id).title)
         setAddMovieDescription(movies.find(movie => movie._id === id).description)
         setAddMovieDirector(movies.find(movie => movie._id === id).director)
-        setAddMovieReleaseDate(movies.find(movie => movie._id === id).release_date)
+        setAddMovieReleaseDate(movies.find(movie => movie._id === id).release_date.replace('.000Z', ''))
         setAddMovieActors(movies.find(movie => movie._id === id).actors)
         setAddMovieCategory(movies.find(movie => movie._id === id).category)
+        setAddMovieDuration(movies.find(movie => movie._id === id).duration)
+        setAddMovieTags(movies.find(movie => movie._id === id).tags)
+        setAddMovieTrailer(movies.find(movie => movie._id === id).trailer)
         setIsMovieUpdating(id)
 
         let movie = movies.find(movie => movie._id === id)
@@ -195,6 +204,9 @@ function MoviesAdmin(props) {
             setAddMovieActors('')
             setAddMovieCategory('')
             setAddMovieImage('')
+            setAddMovieDuration('')
+            setAddMovieTags('')
+            setAddMovieTrailer('')
             setUploadMultiple([])
             setIsMovieUpdating(false)
         }
@@ -219,6 +231,9 @@ function MoviesAdmin(props) {
         data.append('release_date', addMovieReleaseDate)
         data.append('actors', addMovieActors)
         data.append('category', addMovieCategory)
+        data.append('duration', addMovieDuration)
+        data.append('tags', addMovieTags)
+        data.append('trailer', addMovieTrailer)
 
         if (isMovieUpdating) {
             movieUpdateMutate(data)
@@ -241,16 +256,15 @@ function MoviesAdmin(props) {
 
     }
 
-
     return (
         <div className="text-gray-700 min-h-screen">
             <div className="flex justify-end">
                 <div className="mt-5 mr-5">
                     {
                         addMovieClicked ?
-                            <button className="btn btn-success" onClick={() => saveNewMovie()}>{movieIsLoading ? 'Saving...' : isMovieUpdating ? 'Update Movie' : 'Save Movie'}</button>
+                            <button className="btn btn-success mb-2" onClick={() => saveNewMovie()}>{movieIsLoading ? 'Saving...' : isMovieUpdating ? 'Update Movie' : 'Save Movie'}</button>
                             :
-                            <button className="btn btn-primary" onClick={() => addNewMovie()}>Add Movie</button>
+                            <button className="btn btn-primary mb-2" onClick={() => addNewMovie()}>Add Movie</button>
                     }
                 </div>
             </div>
@@ -282,6 +296,24 @@ function MoviesAdmin(props) {
                                         <span className="label-text text-white">Actors</span>
                                     </label>
                                     <input type="text" placeholder={"Actors' Name"} value={addMovieActors} onChange={(e) => setAddMovieActors(e.target.value)} className="input input-ghost text-white w-full max-w-md" />
+                                </div>
+                                <div className="form-control w-full max-w-md">
+                                    <label className="label">
+                                        <span className="label-text text-white">Duration</span>
+                                    </label>
+                                    <input type="text" placeholder={"Duration"} value={addMovieDuration} onChange={(e) => setAddMovieDuration(e.target.value)} className="input input-ghost text-white w-full max-w-md" />
+                                </div>
+                                <div className="form-control w-full max-w-md">
+                                    <label className="label">
+                                        <span className="label-text text-white">Tags</span>
+                                    </label>
+                                    <input type="text" placeholder={"Tags (Comma Seperated)"} value={addMovieTags} onChange={(e) => setAddMovieTags(e.target.value)} className="input input-ghost text-white w-full max-w-md" />
+                                </div>
+                                <div className="form-control w-full max-w-md">
+                                    <label className="label">
+                                        <span className="label-text text-white">Trailer Link</span>
+                                    </label>
+                                    <input type="text" placeholder={"Trailer Link"} value={addMovieTrailer} onChange={(e) => setAddMovieTrailer(e.target.value)} className="input input-ghost text-white w-full max-w-md" />
                                 </div>
                                 <div className="form-control w-full max-w-md">
                                     <label className="label">

@@ -11,7 +11,7 @@ function AdminDashboard(props) {
     if (!props.token) {
         const isAdmin = localStorage.getItem('isAdmin')
         if (!isAdmin) {
-            navigate("/")
+            navigate("/login")
         }
     }
   }, [])
