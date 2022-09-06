@@ -1,15 +1,38 @@
 import React, { useEffect, useState } from "react"
 import { connect } from "react-redux"
+import {
+    SetUserMovieDetailsAction
+  } from "../redux/App/app.actions"
 import { useNavigate, useParams } from "react-router-dom"
 import { useMutation, useQuery, useQueryClient } from "react-query"
 import { fetchFunc } from "../utils"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowAltCircleRight } from "@fortawesome/free-solid-svg-icons"
-
+import { useGoogleLogout } from "react-google-login"
+const clientId = '874157957573-9ghj35jep265q5u0ksfjr5mm22qmbb1k.apps.googleusercontent.com'
 
 function MoviePage(props) {
+    const [userName, setUserName] = useState('')
+    const [userEmail, setUserEmail] = useState('')
+    const [userSeats, setUserSeats] = useState(1)
+
     const queryClient = useQueryClient()
     const params = useParams()
+    const onLogoutSuccess = () => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('email')
+        localStorage.removeItem('username')
+        localStorage.removeItem('admin')
+        navigate('/')
+    }
+
+    const onFailure = (error) => {
+        console.log(error)
+    }
+
+    const { signOut } = useGoogleLogout({
+        clientId,
+        onLogoutSuccess,
+        onFailure,
+    })
 
     useEffect(() => {
 
@@ -39,24 +62,29 @@ function MoviePage(props) {
             position: 'relative',
             height: 0,
         }}>
-          <iframe
-            width="853"
-            height="480"
-            style={{
-                left: 0,
-                top: 0,
-                height: '100%',
-                width: '100%',
-                position: 'absolute',
-            }}
-            src={`https://www.youtube.com/embed/${embedId}`}
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            title="Embedded youtube"
-          />
+            <iframe
+                width="853"
+                height="480"
+                style={{
+                    left: 0,
+                    top: 0,
+                    height: '100%',
+                    width: '100%',
+                    position: 'absolute',
+                }}
+                src={`https://www.youtube.com/embed/${embedId}`}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title="Embedded youtube"
+            />
         </div>
-      );
+    );
+
+    const setMovieUserDetails = () => {
+        props.setMovieUserDetails(params.id, userName, userEmail, userSeats)
+        navigate('/movies/buy/'+movie.slug)
+    }
 
     return (
         <div>
@@ -80,8 +108,18 @@ function MoviePage(props) {
                         </a>
                     </div>
                     <div>
-                        <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0 mr-2">Signup</button>
-                        <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0" onClick={() => navigate('/login')}>Login</button>
+                        {
+                            localStorage.getItem('token') ?
+                                <>
+                                    <span className="text-white mr-4">Hello, {localStorage.getItem('username')}</span>
+                                    <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0" onClick={() => signOut()}>Logout</button>
+                                </>
+                                :
+                                <>
+                                    <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0 mr-2">Signup</button>
+                                    <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0" onClick={() => navigate('/login')}>Login</button>
+                                </>
+                        }
                     </div>
                 </div>
             </nav>
@@ -98,12 +136,12 @@ function MoviePage(props) {
                                 <span className="mx-2">•</span>
                                 {
                                     movie?.release_date ?
-                                    <span>{new Date(movie?.release_date).getFullYear()}</span>
-                                    : <></>
+                                        <span>{new Date(movie?.release_date).getFullYear()}</span>
+                                        : <></>
                                 }
                             </div>
                             <div className="flex">
-                                <img src={`http://localhost:3001/${movie?.image_urls?.[0]}`} alt="movie" className="max-w-md"/>
+                                <img src={`http://localhost:3001/${movie?.image_urls?.[0]}`} alt="movie" className="max-w-md" />
                                 <div className="mb-4 mx-4 text-gray-500">
                                     <YoutubeEmbed embedId={movie?.trailer} />
                                     <div className="tags flex mt-4">
@@ -118,29 +156,64 @@ function MoviePage(props) {
                                     </div>
                                     {
                                         movie?.description?.length ?
-                                        <div className="mt-4" dangerouslySetInnerHTML={{ __html: movie?.description }} />
-                                        : ''
+                                            <div className="mt-4" dangerouslySetInnerHTML={{ __html: movie?.description }} />
+                                            : ''
                                     }
 
                                     <div className="creator mt-2">
                                         <span className="text-xl mr-2">Director:</span>
-                                        <span>{ movie?.director }</span>
+                                        <span>{movie?.director}</span>
                                     </div>
 
                                     <div className="actors mt-2">
                                         <span className="text-xl mr-2">Actors:</span>
-                                        <span>{ movie?.actors }</span>
+                                        <span>{movie?.actors}</span>
                                     </div>
 
-                                    <button className="btn btn-sm btn-primary mt-4" onClick={() => navigate('/movies/buy/'+movie._id)}>Buy Tickets</button>
-                                    
+                                    <label htmlFor="my-modal-5" className="btn modal-button btn-sm btn-primary mt-4" >Buy Tickets</label>
                                     <div className="tickets-count mt-4">
                                         <span className="text-xl mr-2">Tickets:</span>
-                                        <span className="text-2xl animate-pulse text-red-400 font-bold">{ movie?.tickets_count ? movie?.tickets_count : 78 }</span>
+                                        <span className="text-2xl animate-pulse text-red-400 font-bold">{movie?.tickets_count ? movie?.tickets_count : 78}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Modal Code Below */}
+
+            <input type="checkbox" id="my-modal-5" className="modal-toggle" />
+            <div className="modal">
+                <div className="modal-box w-6/12 max-w-5xl bg-white">
+                    <h3 className="font-bold text-lg text-black">Enter Following details to proceed</h3>
+                    <div className="w-full py-4">
+                        <div className="flex flex-col justify-center">
+                            <div className="form-control mt-2 w-full mr-2">
+                                <label className="label">
+                                    <span className="label-text text-black font-bold">Name</span>
+                                </label>
+                                <input type="text" placeholder="Name" value={userName} onChange={(e) => setUserName(e.target.value)} className="input text-white" />
+                            </div>
+                            <div className="form-control mt-2 w-full mr-2">
+                                <label className="label">
+                                    <span className="label-text text-black font-bold">Email</span>
+                                </label>
+                                <input type="text" placeholder={"Email"} value={userEmail} onChange={(e) => setUserEmail(e.target.value)} className="input text-white" />
+                            </div>
+                            <div className="form-control mt-2 w-full">
+                                <label className="label">
+                                    <span className="label-text text-black font-bold">No. of Tickets</span>
+                                </label>
+                                <input type="number" placeholder={"No of Tickets"} value={userSeats} onChange={(e) => setUserSeats(e.target.value)} className="input text-white" />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="modal-action">
+                        <label htmlFor="my-modal-5" className="btn">Close</label>
+
+                        <button className="btn btn-success" onClick={() => setMovieUserDetails()}>Next</button>
                     </div>
                 </div>
             </div>
@@ -150,13 +223,13 @@ function MoviePage(props) {
 
 const mapStateToProps = state => {
     return {
-        token: state.appState.token,
+        token: state.appState.token
     }
 }
 
 const mapDispatchToProps = dispatch => {
     return {
-
+        setMovieUserDetails: (movieId, userName, userEmail, userSeats) => dispatch(SetUserMovieDetailsAction({movieId, userName, userEmail, userSeats}))
     }
 }
 

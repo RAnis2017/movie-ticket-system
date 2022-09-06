@@ -154,12 +154,12 @@ router.get('/get-movies', (req, res, next) => {
 router.get('/get-movie/:id', (req, res, next) => {
   let movieModel = mongoose.model('Movie');
   let userModel = mongoose.model('User');
-  movieModel.findById(req.params.id).populate({ path: 'created_by', model: userModel }).exec((err, movie) => {
+  movieModel.find({slug: req.params.id}).populate({ path: 'created_by', model: userModel }).exec((err, movie) => {
     if (err) {
       console.log(err);
       res.status(500).json({ 'message': 'Internal server error' });
     } else {
-      res.status(200).json(movie);
+      res.status(200).json(movie[0]);
     }
   })
 })

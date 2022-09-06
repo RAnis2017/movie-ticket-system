@@ -31,6 +31,12 @@ const storage = multer.diskStorage({
 //     text: ''
 // };
 
+function convertToSlug(Text) {
+    return Text.toLowerCase()
+            .replace(/[^\w ]+/g, '')
+            .replace(/ +/g, '-');
+}
+
 const multi_upload = multer({
     dest: 'uploads/',
     storage,
@@ -74,7 +80,8 @@ router.post('/add-movie', (req, res, next) => {
                 description: body.description,
                 image_urls: fileNames,
                 category: body.category,
-                created_by: req.user.user_id
+                created_by: req.user.user_id,
+                slug: convertToSlug(body.title)
             }, (err, movie) => {
                 if (err) {
                     console.log(err);
@@ -114,6 +121,7 @@ router.put('/update-movie/:id', (req, res, next) => {
                 trailer: body.trailer,
                 actors: body.actors,
                 description: body.description,
+                slug: convertToSlug(body.title)
             }
             if (req.files && req.files.length) {
                 for (let i = 0; i < req.files.length; i++) {

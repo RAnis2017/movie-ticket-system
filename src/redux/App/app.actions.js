@@ -1,4 +1,4 @@
-import { GoogleSignIn, LoginSuccess, SetToken, SetPermissions } from './app.types';
+import { GoogleSignIn, LoginSuccess, SetToken, SetPermissions, SetUserMovieDetails } from './app.types';
 export const GoogleSignInSuccess = (email) => {
     return {
         type: GoogleSignIn,
@@ -24,5 +24,12 @@ export const SetPermissionsAction = (permissions) => {
     return {
         type: SetPermissions,
         payload: permissions
+    };
+}
+
+export const SetUserMovieDetailsAction = (userMovieDetails) => {
+    return {
+        type: SetUserMovieDetails,
+        payload: userMovieDetails
     };
 }

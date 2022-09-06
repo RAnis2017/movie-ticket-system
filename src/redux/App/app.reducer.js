@@ -1,10 +1,11 @@
-import { LoginSuccess, GoogleSignIn, SetToken, SetPermissions } from './app.types';
+import { LoginSuccess, GoogleSignIn, SetToken, SetPermissions, SetUserMovieDetails } from './app.types';
 
 const INITIAL_STATE = {
     email: '',
     isLoggedIn: false,
     token: '',
     permissions: [],
+    userMovieDetails: {},
 };
 
 const reducer = (state = INITIAL_STATE, action) => {
@@ -27,6 +28,10 @@ const reducer = (state = INITIAL_STATE, action) => {
         case SetPermissions:
             return {
                 ...state, permissions: action.payload,
+            };
+        case SetUserMovieDetails:
+            return {
+                ...state, userMovieDetails: action.payload,
             };
         default: return state;
     }

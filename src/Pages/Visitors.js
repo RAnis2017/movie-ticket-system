@@ -5,10 +5,28 @@ import { useMutation, useQuery, useQueryClient } from "react-query"
 import { fetchFunc } from "../utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowAltCircleRight } from "@fortawesome/free-solid-svg-icons"
-
+import { useGoogleLogout } from "react-google-login"
+const clientId = '874157957573-9ghj35jep265q5u0ksfjr5mm22qmbb1k.apps.googleusercontent.com'
 
 function Visitors(props) {
     const queryClient = useQueryClient()
+    const onLogoutSuccess = () => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('email')
+        localStorage.removeItem('username')
+        localStorage.removeItem('admin')
+        navigate('/')
+      }
+    
+      const onFailure = (error) => {
+        console.log(error)
+      }
+    
+      const { signOut } = useGoogleLogout({
+        clientId,
+        onLogoutSuccess,
+        onFailure,
+      })
 
     useEffect(() => {
 
@@ -53,8 +71,19 @@ function Visitors(props) {
                         </a>
                     </div>
                     <div>
-                        <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0 mr-2">Signup</button>
-                        <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0" onClick={() => navigate('/login')}>Login</button>
+                        {
+                            localStorage.getItem('token') ?
+                            <>
+                            <span className="text-white mr-4">Hello, {localStorage.getItem('username')}</span>
+                            <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0" onClick={() => signOut()}>Logout</button>
+                            </>
+                            :
+                            <>
+                                <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0 mr-2">Signup</button>
+                                <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0" onClick={() => navigate('/login')}>Login</button>
+                            </>
+                        }
+                        
                     </div>
                 </div>
             </nav>
@@ -84,7 +113,7 @@ function Visitors(props) {
                     {
                        movies?.['showingNow']?.length ? movies['showingNow'].map((movie) => (
                             <>
-                                <div className="w-1/4 ml-6 mt-3 bg-white rounded-lg m-h-64 p-2 transform hover:scale-105 hover:shadow-xl transition duration-300" key={movie._id} onClick={() => navigate('/movies/'+movie._id)}>
+                                <div className="w-1/4 ml-6 mt-3 bg-white rounded-lg m-h-64 p-2 transform hover:scale-105 hover:shadow-xl transition duration-300" key={movie._id} onClick={() => navigate('/movies/'+movie.slug)}>
                                     <figure className="mb-2">
                                         <img src={`http://localhost:3001/${movie?.image_urls?.[0]}`} alt="" className="h-64 ml-auto mr-auto" />
                                     </figure>
@@ -124,7 +153,7 @@ function Visitors(props) {
                     {
                         movies?.['upcomingMovies']?.length ? movies['upcomingMovies'].map((movie) => (
                             <>
-                                <div className="w-1/4 ml-6 mt-3 bg-white rounded-lg m-h-64 p-2 transform hover:scale-105 hover:shadow-xl transition duration-300" key={movie._id} onClick={() => navigate('/movies/'+movie._id)}>
+                                <div className="w-1/4 ml-6 mt-3 bg-white rounded-lg m-h-64 p-2 transform hover:scale-105 hover:shadow-xl transition duration-300" key={movie._id} onClick={() => navigate('/movies/'+movie.slug)}>
                                     <figure className="mb-2">
                                         <img src={`http://localhost:3001/${movie?.image_urls?.[0]}`} alt="" className="h-64 ml-auto mr-auto" />
                                     </figure>

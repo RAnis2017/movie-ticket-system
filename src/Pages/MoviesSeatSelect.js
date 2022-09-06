@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "react-query"
 import { faChair } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { fetchFunc } from "../utils"
+import { useGoogleLogout } from "react-google-login"
 const clientId = '874157957573-9ghj35jep265q5u0ksfjr5mm22qmbb1k.apps.googleusercontent.com'
 
 function MoviesSeatSelect(props) {
@@ -17,9 +18,27 @@ function MoviesSeatSelect(props) {
     const PRICE_PER_SEAT = 1200;
 
     const queryClient = useQueryClient()
+    const onLogoutSuccess = () => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('email')
+        localStorage.removeItem('username')
+        localStorage.removeItem('admin')
+        navigate('/')
+    }
+
+    const onFailure = (error) => {
+        console.log(error)
+    }
+
+    const { signOut } = useGoogleLogout({
+        clientId,
+        onLogoutSuccess,
+        onFailure,
+    })
 
     useEffect(() => {
         setCurrentPrice(selectedSeats.length * PRICE_PER_SEAT)
+        console.log(props.userMovieDetails)
     }, [selectedSeats])
 
     const { isLoading: settingsLoading, isSuccess: settingsSuccess, data: settings } = useQuery('settings', () =>
@@ -109,8 +128,18 @@ function MoviesSeatSelect(props) {
                         </a>
                     </div>
                     <div>
-                        <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0 mr-2">Signup</button>
-                        <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0" onClick={() => navigate('/login')}>Login</button>
+                        {
+                            localStorage.getItem('token') ?
+                                <>
+                                    <span className="text-white mr-4">Hello, {localStorage.getItem('username')}</span>
+                                    <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0" onClick={() => signOut()}>Logout</button>
+                                </>
+                                :
+                                <>
+                                    <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0 mr-2">Signup</button>
+                                    <button className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0" onClick={() => navigate('/login')}>Login</button>
+                                </>
+                        }
                     </div>
                 </div>
             </nav>
@@ -132,6 +161,7 @@ function MoviesSeatSelect(props) {
 const mapStateToProps = state => {
     return {
         token: state.appState.token,
+        userMovieDetails: state.appState.userMovieDetails
     }
 }
 
