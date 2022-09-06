@@ -38,7 +38,6 @@ function MoviesSeatSelect(props) {
 
     useEffect(() => {
         setCurrentPrice(selectedSeats.length * PRICE_PER_SEAT)
-        console.log(props.userMovieDetails)
     }, [selectedSeats])
 
     const { isLoading: settingsLoading, isSuccess: settingsSuccess, data: settings } = useQuery('settings', () =>
@@ -71,7 +70,7 @@ function MoviesSeatSelect(props) {
                     <div className=" mr-5 text-violet-700 font-black">
                         <h1>{alphabets[i]}</h1>
                     </div>
-                    { seatsPerRow > 0 && getCols(i) }
+                    {seatsPerRow > 0 && getCols(i)}
                 </div>
             )
         }
@@ -101,7 +100,9 @@ function MoviesSeatSelect(props) {
         if (selectedSeats.includes(seatNumber)) {
             setSelectedSeats(selectedSeats.filter(seat => seat !== seatNumber))
         } else {
-            setSelectedSeats([...selectedSeats, seatNumber])
+            if (selectedSeats.length !== parseInt(props.userMovieDetails.userSeats)) {
+                setSelectedSeats([...selectedSeats, seatNumber])
+            }
         }
     }
 
@@ -145,14 +146,22 @@ function MoviesSeatSelect(props) {
             </nav>
             <div className="flex justify-center">
                 <div className="flex flex-col overflow-x-auto max-w-6xl">
-                {
-                    rows > 0 && getRows(rows)
-                }
+                    {
+                        rows > 0 && getRows(rows)
+                    }
                 </div>
             </div>
             <div className="flex justify-center mt-5 px-5">
                 <h1 className="text-2xl mr-2 text-gray-600">Total Price:</h1>
                 <h1 className="text-2xl text-blue-500">Rs {currentPrice}</h1>
+            </div>
+            <div className="flex justify-center mt-5 px-5">
+                {
+                    props.userMovieDetails && parseInt(props.userMovieDetails.userSeats) === selectedSeats.length ?
+                        <button className="btn btn-primary ml-5" onClick={() => console.log('Book seats Clicked!')}>Book Seats</button>
+                        :
+                        <button className="btn btn-primary ml-5" disabled>Book Seats</button>
+                }
             </div>
         </div>
     )
