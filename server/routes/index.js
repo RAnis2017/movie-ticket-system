@@ -227,6 +227,39 @@ router.get('/get-settings/:setting_type', (req, res, next) => {
   )
 })
 
+router.post('/create-tickets', (req, res, next) => {
+  let ticketModel = mongoose.model('Ticket');
+  let ticket = {
+    Name: req.body.Name,
+    Email: req.body.Email,
+    movieID: req.body.movieID,
+    seats_count: req.body.seats_count,
+    seats: req.body.seats,
+    total_price: req.body.total_price,
+  }
+  ticketModel.create(ticket, (err, ticket) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ 'message': 'Internal server error' });
+    } else {
+      res.status(200).json(ticket);
+    }
+  }
+  )
+})
+
+router.get('/get-tickets/:movieID', (req, res, next) => {
+  let ticketModel = mongoose.model('Ticket');
+  ticketModel.find({movieID: req.params.movieID}, (err, tickets) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ 'message': 'Internal server error' });
+    } else {
+      res.status(200).json(tickets);
+    }
+  })
+})
+
 router.use(auth);
 
 router.use('/admin', require('./admin'));

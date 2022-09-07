@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { connect } from "react-redux"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import { useMutation, useQuery, useQueryClient } from "react-query"
 import { faChair } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -14,10 +14,13 @@ function MoviesSeatSelect(props) {
     const [divideSeatsBy, setDivideSeatsBy] = useState(1)
     const [settingId, setSettingId] = useState(0)
     const [selectedSeats, setSelectedSeats] = useState([])
+    const [disabledSeats, setDisabledSeats] = useState([])
     const [currentPrice, setCurrentPrice] = useState(0)
     const PRICE_PER_SEAT = 1200;
 
     const queryClient = useQueryClient()
+    const params = useParams()
+
     const onLogoutSuccess = () => {
         localStorage.removeItem('token')
         localStorage.removeItem('email')
@@ -45,7 +48,7 @@ function MoviesSeatSelect(props) {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
             'x-access-token': localStorage.getItem('token'),
-        }, null, navigate, 'readAllCategories'),
+        }, null, navigate, 'readAllSettings'),
         {
             refetchOnWindowFocus: false,
             retryError: false,
@@ -55,6 +58,43 @@ function MoviesSeatSelect(props) {
                 setSeatsPerRow(data.seats_per_row)
                 setRows(data.rows)
                 setDivideSeatsBy(data.divide_seats_by)
+            }
+        }
+    )
+
+    const { isLoading: ticketsLoading, isSuccess: ticketsSuccess, data: tickets } = useQuery('tickets', () =>
+        fetchFunc(`http://localhost:3001/get-tickets/${params.id}`, 'GET', {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'x-access-token': localStorage.getItem('token'),
+        }, null, navigate, 'readAllTickets'),
+        {
+            refetchOnWindowFocus: false,
+            retryError: false,
+            refetchOnError: false,
+            onSuccess: (data, variables, context) => {
+                if(data.length > 0) {
+                    const seats =  []
+                    data.map(ticket => {
+                        ticket.seats.map(seat => {
+                            seats.push(seat)
+                        })
+                    })
+                    setDisabledSeats(seats)
+                }
+            }
+        }
+    )
+
+    const { mutate: createTickets, isLoading: ticketLoading } = useMutation('create-tickets', (data) =>
+        fetchFunc(`http://localhost:3001/create-tickets`, 'POST', {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'x-access-token': localStorage.getItem('token'),
+        }, JSON.stringify(data), navigate, 'createTickets'),
+        {
+            onSuccess: (data, variables, context) => {
+                navigate('/movies/'+params.id)
             }
         }
     )
@@ -83,7 +123,7 @@ function MoviesSeatSelect(props) {
         const afterDivide = seatsPerRow / (divideSeatsBy > 0 ? divideSeatsBy : 1)
         for (let i = 1; i <= seatsPerRow; i++) {
             cols.push(
-                <button key={`col-${i}`} disabled={false} className={`flex flex-col mr-2 p-1 btn btn-circle btn-outline text-violet-700 bg-slate-100 ${selectedSeats.indexOf(`${row}-${i}`) > -1 ? 'bg-violet-700 text-slate-100' : ''}`} onClick={() => selectedSeatByCustomer(`${row}-${i}`)}>
+                <button key={`col-${i}`} disabled={disabledSeats.indexOf(`${row}-${i}`) > -1} className={`flex flex-col mr-2 p-1 btn btn-circle btn-outline text-violet-700 bg-slate-100 disabled:text-white ${selectedSeats.indexOf(`${row}-${i}`) > -1 ? 'bg-violet-700 text-slate-100' : ''}`} onClick={() => selectedSeatByCustomer(`${row}-${i}`)}>
                     <FontAwesomeIcon icon={faChair} />
                     <span className="text-center">{i}</span>
                 </button>
@@ -104,6 +144,19 @@ function MoviesSeatSelect(props) {
                 setSelectedSeats([...selectedSeats, seatNumber])
             }
         }
+    }
+
+    const bookSeats = () => {
+        const data = {
+            seats: selectedSeats,
+            movieID: props.userMovieDetails.movieId,
+            Name: props.userMovieDetails.userName,
+            Email: props.userMovieDetails.userEmail,
+            seats_count: props.userMovieDetails.userSeats,
+            total_price: currentPrice,
+        }
+
+        createTickets(data)
     }
 
 
@@ -157,10 +210,13 @@ function MoviesSeatSelect(props) {
             </div>
             <div className="flex justify-center mt-5 px-5">
                 {
+                    ticketLoading === false ?
                     props.userMovieDetails && parseInt(props.userMovieDetails.userSeats) === selectedSeats.length ?
-                        <button className="btn btn-primary ml-5" onClick={() => console.log('Book seats Clicked!')}>Book Seats</button>
+                        <button className="btn btn-primary ml-5" onClick={() => bookSeats()}>Book Seats</button>
                         :
                         <button className="btn btn-primary ml-5" disabled>Book Seats</button>
+                    :
+                    <button className="btn btn-primary ml-5" disabled>Booking...</button>
                 }
             </div>
         </div>

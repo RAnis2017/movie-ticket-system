@@ -206,7 +206,7 @@ function MoviePage(props) {
                                 <label className="label">
                                     <span className="label-text text-black font-bold">No. of Tickets</span>
                                 </label>
-                                <input type="number" placeholder={"No of Tickets"} value={userSeats} onChange={(e) => setUserSeats(e.target.value)} className="input text-white" />
+                                <input type="number" placeholder={"No of Tickets"} min={0} value={userSeats} onChange={(e) => setUserSeats(e.target.value)} className="input text-white" />
                             </div>
                         </div>
                     </div>

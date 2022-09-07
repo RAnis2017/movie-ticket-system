@@ -14,6 +14,7 @@ start();
 require('./models/users')
 require('./models/movies')
 require('./models/settings')
+require('./models/tickets')
 
 const express = require('express')
 const app = express()
