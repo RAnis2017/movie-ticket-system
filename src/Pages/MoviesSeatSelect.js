@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { connect } from "react-redux"
 import { useNavigate, useParams } from "react-router-dom"
 import { useMutation, useQuery, useQueryClient } from "react-query"
@@ -6,6 +6,8 @@ import { faChair } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { fetchFunc } from "../utils"
 import { useGoogleLogout } from "react-google-login"
+import party from "party-js";
+
 const clientId = '874157957573-9ghj35jep265q5u0ksfjr5mm22qmbb1k.apps.googleusercontent.com'
 
 function MoviesSeatSelect(props) {
@@ -16,6 +18,15 @@ function MoviesSeatSelect(props) {
     const [selectedSeats, setSelectedSeats] = useState([])
     const [disabledSeats, setDisabledSeats] = useState([])
     const [currentPrice, setCurrentPrice] = useState(0)
+    const [ticketSuccess, setTicketSuccess] = useState(false)
+    const [location, setLocation] = useState({
+        lat: null,
+        lng: null
+    })
+    const [showLocationError, setShowLocationError] = useState(false)
+
+    const partyPop = useRef(null)
+
     const PRICE_PER_SEAT = 1200;
 
     const queryClient = useQueryClient()
@@ -38,6 +49,10 @@ function MoviesSeatSelect(props) {
         onLogoutSuccess,
         onFailure,
     })
+
+    useEffect(() => {
+        getLocation()
+    }, [])
 
     useEffect(() => {
         setCurrentPrice(selectedSeats.length * PRICE_PER_SEAT)
@@ -73,9 +88,9 @@ function MoviesSeatSelect(props) {
             retryError: false,
             refetchOnError: false,
             onSuccess: (data, variables, context) => {
-                if(data.length > 0) {
+                if(data.tickets.length > 0) {
                     const seats =  []
-                    data.map(ticket => {
+                    data.tickets.map(ticket => {
                         ticket.seats.map(seat => {
                             seats.push(seat)
                         })
@@ -94,7 +109,10 @@ function MoviesSeatSelect(props) {
         }, JSON.stringify(data), navigate, 'createTickets'),
         {
             onSuccess: (data, variables, context) => {
-                navigate('/movies/'+params.id)
+                queryClient.invalidateQueries('tickets')
+                setTicketSuccess(true)
+                party.confetti(partyPop.current);
+                // navigate('/movies/'+params.id)
             }
         }
     )
@@ -123,7 +141,7 @@ function MoviesSeatSelect(props) {
         const afterDivide = seatsPerRow / (divideSeatsBy > 0 ? divideSeatsBy : 1)
         for (let i = 1; i <= seatsPerRow; i++) {
             cols.push(
-                <button key={`col-${i}`} disabled={disabledSeats.indexOf(`${row}-${i}`) > -1} className={`flex flex-col mr-2 p-1 btn btn-circle btn-outline text-violet-700 bg-slate-100 disabled:text-white ${selectedSeats.indexOf(`${row}-${i}`) > -1 ? 'bg-violet-700 text-slate-100' : ''}`} onClick={() => selectedSeatByCustomer(`${row}-${i}`)}>
+                <button key={`col-${i}`} disabled={disabledSeats.indexOf(`${row}-${i}`) > -1} className={`flex flex-col mr-2 p-1 btn btn-circle btn-outline text-violet-700 bg-slate-100 disabled:text-white disabled:bg-slate-400 ${selectedSeats.indexOf(`${row}-${i}`) > -1 ? 'bg-violet-700 text-slate-100' : ''}`} onClick={() => selectedSeatByCustomer(`${row}-${i}`)}>
                     <FontAwesomeIcon icon={faChair} />
                     <span className="text-center">{i}</span>
                 </button>
@@ -147,6 +165,12 @@ function MoviesSeatSelect(props) {
     }
 
     const bookSeats = () => {
+
+        if(location.lat === null || location.lng === null) {
+            setShowLocationError(true)
+            return
+        }
+
         const data = {
             seats: selectedSeats,
             movieID: props.userMovieDetails.movieId,
@@ -154,9 +178,28 @@ function MoviesSeatSelect(props) {
             Email: props.userMovieDetails.userEmail,
             seats_count: props.userMovieDetails.userSeats,
             total_price: currentPrice,
+            latitude: location.lat,
+            longitude: location.lng,
         }
 
         createTickets(data)
+    }
+
+    const getLocation = () => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition((position) => {
+            const lat = position.coords.latitude
+            const lng = position.coords.longitude
+            setLocation({lat, lng})
+          });
+        } else {
+          setLocation({lat: null, lng: null});
+          showLocationError(true)
+        }
+      }
+
+    const downloadTickets = () => {
+        console.log('download')
     }
 
 
@@ -197,6 +240,38 @@ function MoviesSeatSelect(props) {
                     </div>
                 </div>
             </nav>
+            <div >
+                <div className="flex flex-col items-center justify-center">
+                <div className={`w-1/2 alert alert-error mt-2 shadow-lg ${!showLocationError ?  'hidden' : ''}`}>
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span>Please enable location. Required to proceed.</span>
+                    </div>
+                </div>
+                </div>
+                <div className="flex items-center justify-center mt-2 text-black">
+                        <span className="w-10 h-10 bg-slate-400 rounded-full border-white border-2"></span>
+                        <span className="ml-2">Booked (Not Available)</span>
+
+                        <span className="w-10 h-10 bg-white rounded-full border-2 border-violet-700 ml-6"></span>
+                        <span className="ml-2">Available</span>
+
+                        <span className="w-10 h-10 bg-violet-700 rounded-full border-white border-2 ml-6"></span>
+                        <span className="ml-2">Selected</span>
+
+                        <span className="w-10 h-10 bg-teal-600 rounded-full border-2 border-white ml-6"></span>
+                        <span className="ml-2">Being Picked</span>
+                </div>
+                {/* <div>
+                    {
+                        location.lat && location.lng ?
+                        <h1>Location Latitude: { location.lat }, Location Longitude: { location.lng }</h1>
+                        :
+                        <></>
+                    }
+                    
+                </div> */}
+            </div>
             <div className="flex justify-center">
                 <div className="flex flex-col overflow-x-auto max-w-6xl">
                     {
@@ -214,10 +289,23 @@ function MoviesSeatSelect(props) {
                     props.userMovieDetails && parseInt(props.userMovieDetails.userSeats) === selectedSeats.length ?
                         <button className="btn btn-primary ml-5" onClick={() => bookSeats()}>Book Seats</button>
                         :
-                        <button className="btn btn-primary ml-5" disabled>Book Seats</button>
+                        <button className="btn btn-primary ml-5 disabled:text-white" disabled>Book Seats</button>
                     :
-                    <button className="btn btn-primary ml-5" disabled>Booking...</button>
+                    <button className="btn btn-primary ml-5 disabled:text-white" disabled>Booking...</button>
                 }
+            </div>
+            
+            <input type="checkbox" id="my-modal-5" className="modal-toggle" />
+            <div className={`modal ${ticketSuccess ? 'modal-open' : ''}`}>
+                <div className="modal-box w-6/12 max-w-5xl bg-white flex justify-center items-center flex-col">
+                    <h3 className="text-3xl text-purple-600 font-bold">Congrats!</h3>
+                    <h3 className="font-bold text-lg text-black mt-2" ref={partyPop}>Your <span className="underline text-blue-600">{props.userMovieDetails.userSeats}</span> Ticket/s for <span className="underline text-blue-600">{tickets?.movie?.title}</span> has been Booked!</h3>
+                    <div className="modal-action">
+                        <button className="btn btn-success" onClick={() => downloadTickets()}>Download Tickets</button>
+                        <button className="btn" onClick={() => setTicketSuccess(false)}>Close</button>
+                    </div>
+                    <h3 className="mt-2 underline">Please Download Tickets Before Closing This Alert!</h3>
+                </div>
             </div>
         </div>
     )

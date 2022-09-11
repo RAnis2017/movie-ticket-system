@@ -17,6 +17,7 @@ const TicketSchema = new mongoose.Schema({
     movieID: {
         type: String,
         required: true,
+        ref: 'Movie'
     },
     seats: [{ type : String }],
     total_price: {
@@ -26,6 +27,14 @@ const TicketSchema = new mongoose.Schema({
     created_date: {
         type: Date,
         default: Date.now,
+        required: true,
+    },
+    latitude: {
+        type: Number,
+        required: true,
+    },
+    longitude: {
+        type: Number,
         required: true,
     },
     updated_date: {

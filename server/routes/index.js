@@ -236,6 +236,8 @@ router.post('/create-tickets', (req, res, next) => {
     seats_count: req.body.seats_count,
     seats: req.body.seats,
     total_price: req.body.total_price,
+    latitude: req.body.latitude,
+    longitude: req.body.longitude,
   }
   ticketModel.create(ticket, (err, ticket) => {
     if (err) {
@@ -250,12 +252,20 @@ router.post('/create-tickets', (req, res, next) => {
 
 router.get('/get-tickets/:movieID', (req, res, next) => {
   let ticketModel = mongoose.model('Ticket');
+  let movieModel = mongoose.model('Movie');
   ticketModel.find({movieID: req.params.movieID}, (err, tickets) => {
     if (err) {
       console.log(err);
       res.status(500).json({ 'message': 'Internal server error' });
     } else {
-      res.status(200).json(tickets);
+      movieModel.findOne({slug: req.params.movieID}, (err, movie) => {
+        if (err) {
+          console.log(err);
+          res.status(500).json({ 'message': 'Internal server error' });
+        } else {
+          res.status(200).json({tickets, movie});
+        }
+      })
     }
   })
 })
