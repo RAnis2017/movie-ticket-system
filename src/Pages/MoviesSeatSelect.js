@@ -7,8 +7,17 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { fetchFunc } from "../utils"
 import { useGoogleLogout } from "react-google-login"
 import party from "party-js";
+import { io } from "socket.io-client"
 
 const clientId = '874157957573-9ghj35jep265q5u0ksfjr5mm22qmbb1k.apps.googleusercontent.com'
+const uniqueIdGenerator = () => {
+    let uniqueId = ""
+    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    for (let i = 0; i < 5; i++) {
+        uniqueId += possible.charAt(Math.floor(Math.random() * possible.length))
+    }
+    return uniqueId
+}
 
 function MoviesSeatSelect(props) {
     const [seatsPerRow, setSeatsPerRow] = useState(0)
@@ -17,6 +26,7 @@ function MoviesSeatSelect(props) {
     const [settingId, setSettingId] = useState(0)
     const [selectedSeats, setSelectedSeats] = useState([])
     const [disabledSeats, setDisabledSeats] = useState([])
+    const [pickedSeats, setPickedSeats] = useState([])
     const [currentPrice, setCurrentPrice] = useState(0)
     const [ticketSuccess, setTicketSuccess] = useState(false)
     const [location, setLocation] = useState({
@@ -25,6 +35,9 @@ function MoviesSeatSelect(props) {
     })
     const [showLocationError, setShowLocationError] = useState(false)
     const [pdfUrl, setPdfUrl] = useState("")
+    const [uniqueId, setUniqueId] = useState(uniqueIdGenerator())
+
+    const socket = io('http://localhost:3001');
 
     const partyPop = useRef(null)
 
@@ -53,6 +66,34 @@ function MoviesSeatSelect(props) {
 
     useEffect(() => {
         getLocation()
+        socket.on('connection', payload => {
+            console.log(payload)
+        });
+
+        socket.on('ticket-selected', payload => {
+            if (payload.uniqueId !== uniqueId) {
+                setPickedSeats(prev => [...prev, {seatNumber: payload.seatNumber, uniqueId: payload.uniqueId }])                
+            }
+        });
+
+        socket.on('ticket-deselected', payload => {
+            if (payload.uniqueId !== uniqueId) {
+                setPickedSeats(prev => prev.filter(seat => seat.seatNumber !== payload.seatNumber))
+            }
+        });
+
+        socket.on('disconnect-without-buy', payload => {
+            if (payload.uniqueId !== uniqueId) {
+                setPickedSeats(prev => prev.filter(seat => seat.seatNumber !== payload.seatNumber && seat.uniqueId !== payload.uniqueId))
+            }
+        });
+
+        return () => {
+            if(pdfUrl === ""){
+                socket.emit('disconnect-without-buy', { uniqueId })
+            }
+            socket.disconnect()
+        }
     }, [])
 
     useEffect(() => {
@@ -143,9 +184,10 @@ function MoviesSeatSelect(props) {
     const getCols = (row) => {
         const cols = []
         const afterDivide = seatsPerRow / (divideSeatsBy > 0 ? divideSeatsBy : 1)
+        const pickedSeatsArr = pickedSeats.map(seat => seat.seatNumber)
         for (let i = 1; i <= seatsPerRow; i++) {
             cols.push(
-                <button key={`col-${i}`} disabled={disabledSeats.indexOf(`${row}-${i}`) > -1} className={`flex flex-col mr-2 p-1 btn btn-circle btn-outline text-violet-700 bg-slate-100 disabled:text-white disabled:bg-slate-400 ${selectedSeats.indexOf(`${row}-${i}`) > -1 ? 'bg-violet-700 text-slate-100' : ''}`} onClick={() => selectedSeatByCustomer(`${row}-${i}`)}>
+                <button key={`col-${i}`} disabled={disabledSeats.indexOf(`${row}-${i}`) > -1 || pickedSeatsArr.indexOf(`${row}-${i}`) > -1} className={`flex flex-col mr-2 p-1 btn btn-circle btn-outline text-violet-700 bg-slate-100 disabled:text-white ${pickedSeatsArr.indexOf(`${row}-${i}`) > -1 ? 'disabled:bg-teal-600' : 'disabled:bg-slate-400'}  ${selectedSeats.indexOf(`${row}-${i}`) > -1 ? 'bg-violet-700 text-slate-100' : ''}`} onClick={() => selectedSeatByCustomer(`${row}-${i}`)}>
                     <FontAwesomeIcon icon={faChair} />
                     <span className="text-center">{i}</span>
                 </button>
@@ -161,9 +203,11 @@ function MoviesSeatSelect(props) {
     const selectedSeatByCustomer = (seatNumber) => {
         if (selectedSeats.includes(seatNumber)) {
             setSelectedSeats(selectedSeats.filter(seat => seat !== seatNumber))
+            socket.emit('ticket-deselected', { seatNumber, movieId: params.id, uniqueId })
         } else {
             if (selectedSeats.length !== parseInt(props.userMovieDetails.userSeats)) {
                 setSelectedSeats([...selectedSeats, seatNumber])
+                socket.emit('ticket-selected', { seatNumber, movieId: params.id, uniqueId })
             }
         }
     }
