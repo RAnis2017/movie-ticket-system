@@ -24,6 +24,7 @@ function MoviesSeatSelect(props) {
         lng: null
     })
     const [showLocationError, setShowLocationError] = useState(false)
+    const [pdfUrl, setPdfUrl] = useState("")
 
     const partyPop = useRef(null)
 
@@ -112,6 +113,9 @@ function MoviesSeatSelect(props) {
                 queryClient.invalidateQueries('tickets')
                 setTicketSuccess(true)
                 party.confetti(partyPop.current);
+                if(data?.pdf) {
+                    setPdfUrl(data.pdf)
+                }
                 // navigate('/movies/'+params.id)
             }
         }
@@ -200,6 +204,13 @@ function MoviesSeatSelect(props) {
 
     const downloadTickets = () => {
         console.log('download')
+        const link = document.createElement('a');
+        link.href = 'http://localhost:3001/'+pdfUrl;
+        link.setAttribute('target', '_blank');
+        link.setAttribute('download', 'tickets.pdf');
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode.removeChild(link);
     }
 
 

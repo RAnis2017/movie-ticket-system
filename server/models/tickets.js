@@ -37,6 +37,10 @@ const TicketSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    ticket_pdf: {
+        type: String,
+        required: false,
+    },
     updated_date: {
         type: Date,
         default: Date.now,
