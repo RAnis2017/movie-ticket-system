@@ -185,4 +185,31 @@ router.put('/update-setting/:id', (req, res, next) => {
 }
 )
 
+router.get('/get-tickets', (req, res, next) => {
+    let ticketModel = mongoose.model('Ticket');
+    let movieModel = mongoose.model('Movie');
+    ticketModel.find({}, (err, tickets) => {
+      if (err) {
+        console.log(err);
+        res.status(500).json({ 'message': 'Internal server error' });
+      } else {
+        movieModel.find({ slug: tickets.map((ticket) => ticket.movieID) }, (err, movie) => {
+          if (err) {
+            console.log(err);
+            res.status(500).json({ 'message': 'Internal server error' });
+          } else {
+            let ticketsWithMovie = tickets.map((ticket) => {
+                let movieObj = movie.find((movie) => movie.slug === ticket.movieID)
+                return {
+                    ...ticket._doc,
+                    movie: movieObj
+                }
+            })
+            res.status(200).json({ tickets: ticketsWithMovie });
+          }
+        })
+      }
+    })
+  })
+
 module.exports = router;

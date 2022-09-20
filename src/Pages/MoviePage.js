@@ -213,6 +213,20 @@ function MoviePage(props) {
                     <div className="w-full py-4">
                         <div className="flex flex-col justify-center">
                             <div className="form-control mt-2 w-full mr-2">
+                                <div className={`alert alert-error mt-2 flex flex-col items-start shadow-lg ${validations.userName || validations.userSeats || validations.userEmail ?  'hidden' : ''}`}>
+                                    <div className={`${validations.userName ?  'hidden' : ''}`}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        <span>Please add your full name.</span>
+                                    </div>
+                                    <div className={`${validations.userSeats ?  'hidden' : ''}`}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        <span>Please select 1 or more seats.</span>
+                                    </div>
+                                    <div className={`${validations.userEmail ?  'hidden' : ''}`}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        <span>Please add a valid email address.</span>
+                                    </div>
+                                </div>
                                 <label className="label">
                                     <span className="label-text text-black font-bold">Name</span>
                                 </label>
@@ -229,24 +243,6 @@ function MoviePage(props) {
                                     <span className="label-text text-black font-bold">No. of Tickets</span>
                                 </label>
                                 <input type="number" placeholder={"No of Tickets"} min={0} value={userSeats} onChange={(e) => setUserSeats(e.target.value)} className="input text-white" />
-                                <div className={`alert alert-error mt-2 shadow-lg ${validations.userName ?  'hidden' : ''}`}>
-                                    <div>
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        <span>Please add your full name.</span>
-                                    </div>
-                                </div>
-                                <div className={`alert alert-error mt-2 shadow-lg ${validations.userEmail ?  'hidden' : ''}`}>
-                                    <div>
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        <span>Please add a valid email address.</span>
-                                    </div>
-                                </div>
-                                <div className={`alert alert-error mt-2 shadow-lg ${validations.userSeats?  'hidden' : ''}`}>
-                                    <div>
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        <span>Please select 1 or more seats.</span>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>

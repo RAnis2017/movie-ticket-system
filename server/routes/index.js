@@ -243,52 +243,63 @@ router.post('/create-tickets', (req, res, next) => {
     latitude: req.body.latitude,
     longitude: req.body.longitude,
   }
-  ticketModel.create(ticket, (err, ticket) => {
+
+  // check if ticket already exists
+  ticketModel.findOne({ Email: ticket.Email, seats: ticket.seats }, (err, ticketExists) => {
     if (err) {
       console.log(err);
       res.status(500).json({ 'message': 'Internal server error' });
+    } else if (ticketExists) {
+      res.status(400).json({ 'message': 'Ticket already exists' });
     } else {
-      movieModel.findOne({ slug: ticket.movieID }, async (err, movie) => {
+      ticketModel.create(ticket, (err, ticket) => {
         if (err) {
           console.log(err);
           res.status(500).json({ 'message': 'Internal server error' });
         } else {
-          // launch a new chrome instance
-          const browser = await puppeteer.launch({
-            headless: true
-          })
-
-          // create a new page
-          const page = await browser.newPage()
-          
-          // set your html as the pages content
-          const html = getGeneratedHTML(ticket, movie);
-          
-          await page.setContent(html, {
-            waitUntil: 'networkidle0'
-          })
-          // or a .pdf file
-          await page.pdf({
-            format: 'A4',
-            path: path.join(__dirname, '..', 'uploads', `${movie.title}-${ticket._id}-tickets.pdf`)
-          })
-
-          // close the browser
-          await browser.close()
-
-          ticketModel.findOneAndUpdate({ _id: ticket._id }, { $set: { ticket_pdf: `${movie.title}-${ticket._id}-tickets.pdf` } }, (err, ticket) => {
+          movieModel.findOne({ slug: ticket.movieID }, async (err, movie) => {
             if (err) {
               console.log(err);
               res.status(500).json({ 'message': 'Internal server error' });
             } else {
-              res.status(200).json({...ticket, pdf: `${movie.title}-${ticket._id}-tickets.pdf`});
+              // launch a new chrome instance
+              const browser = await puppeteer.launch({
+                headless: true
+              })
+
+              // create a new page
+              const page = await browser.newPage()
+
+              // set your html as the pages content
+              const html = getGeneratedHTML(ticket, movie);
+
+              await page.setContent(html, {
+                waitUntil: 'networkidle0'
+              })
+              // or a .pdf file
+              await page.pdf({
+                format: 'A4',
+                path: path.join(__dirname, '..', 'uploads', `${movie.title}-${ticket._id}-tickets.pdf`)
+              })
+
+              // close the browser
+              await browser.close()
+
+              ticketModel.findOneAndUpdate({ _id: ticket._id }, { $set: { ticket_pdf: `${movie.title}-${ticket._id}-tickets.pdf` } }, (err, ticket) => {
+                if (err) {
+                  console.log(err);
+                  res.status(500).json({ 'message': 'Internal server error' });
+                } else {
+                  res.status(200).json({ ...ticket, pdf: `${movie.title}-${ticket._id}-tickets.pdf` });
+                }
+              })
             }
           })
         }
-      })
+      }
+      )
     }
-  }
-  )
+  })
 })
 
 router.get('/get-tickets/:movieID', (req, res, next) => {
@@ -331,10 +342,10 @@ router.get('/download-tickets/:ticketID', (req, res, next) => {
 
           // create a new page
           const page = await browser.newPage()
-          
+
           // set your html as the pages content
           const html = getGeneratedHTML(ticket, movie);
-          
+
           await page.setContent(html, {
             waitUntil: 'networkidle0'
           })
@@ -352,7 +363,7 @@ router.get('/download-tickets/:ticketID', (req, res, next) => {
 
           // close the browser
           await browser.close()
-          
+
           res.set("Content-Type", "application/pdf");
           res.send(pdfBuffer);
         }

@@ -8,6 +8,9 @@ import { fetchFunc } from "../utils"
 import { useGoogleLogout } from "react-google-login"
 import party from "party-js";
 import { io } from "socket.io-client"
+import {
+    SetUserMovieDetailsAction
+  } from "../redux/App/app.actions"
 
 const clientId = '874157957573-9ghj35jep265q5u0ksfjr5mm22qmbb1k.apps.googleusercontent.com'
 const uniqueIdGenerator = () => {
@@ -36,6 +39,7 @@ function MoviesSeatSelect(props) {
     const [showLocationError, setShowLocationError] = useState(false)
     const [pdfUrl, setPdfUrl] = useState("")
     const [uniqueId, setUniqueId] = useState(uniqueIdGenerator())
+    const [seatsBought, setSeatsBought] = useState(0)
 
     const socket = io('http://localhost:3001');
 
@@ -65,6 +69,7 @@ function MoviesSeatSelect(props) {
     })
 
     useEffect(() => {
+        console.log("userMovieDetails", props.userMovieDetails)
         getLocation()
         socket.on('connection', payload => {
             console.log(payload)
@@ -153,6 +158,8 @@ function MoviesSeatSelect(props) {
             onSuccess: (data, variables, context) => {
                 queryClient.invalidateQueries('tickets')
                 setTicketSuccess(true)
+                setSelectedSeats([])
+                setSeatsBought(data._doc.seats_count)
                 party.confetti(partyPop.current);
                 if(data?.pdf) {
                     setPdfUrl(data.pdf)
@@ -229,6 +236,10 @@ function MoviesSeatSelect(props) {
             latitude: location.lat,
             longitude: location.lng,
         }
+
+        // decrease seats amount
+        const newSeats = parseInt(props.userMovieDetails.userSeats) - selectedSeats.length
+        props.setMovieUserDetails(props.userMovieDetails.movieId, props.userMovieDetails.userName, props.userMovieDetails.userEmail, newSeats)
 
         createTickets(data)
     }
@@ -341,7 +352,7 @@ function MoviesSeatSelect(props) {
             <div className="flex justify-center mt-5 px-5">
                 {
                     ticketLoading === false ?
-                    props.userMovieDetails && parseInt(props.userMovieDetails.userSeats) === selectedSeats.length ?
+                    props.userMovieDetails && parseInt(props.userMovieDetails.userSeats) === selectedSeats.length && parseInt(props.userMovieDetails.userSeats) !== 0 ?
                         <button className="btn btn-primary ml-5" onClick={() => bookSeats()}>Book Seats</button>
                         :
                         <button className="btn btn-primary ml-5 disabled:text-white" disabled>Book Seats</button>
@@ -354,10 +365,10 @@ function MoviesSeatSelect(props) {
             <div className={`modal ${ticketSuccess ? 'modal-open' : ''}`}>
                 <div className="modal-box w-6/12 max-w-5xl bg-white flex justify-center items-center flex-col">
                     <h3 className="text-3xl text-purple-600 font-bold">Congrats!</h3>
-                    <h3 className="font-bold text-lg text-black mt-2" ref={partyPop}>Your <span className="underline text-blue-600">{props.userMovieDetails.userSeats}</span> Ticket/s for <span className="underline text-blue-600">{tickets?.movie?.title}</span> has been Booked!</h3>
+                    <h3 className="font-bold text-lg text-black mt-2" ref={partyPop}>Your <span className="underline text-blue-600">{seatsBought}</span> Ticket/s for <span className="underline text-blue-600">{tickets?.movie?.title}</span> has been Booked!</h3>
                     <div className="modal-action">
                         <button className="btn btn-success" onClick={() => downloadTickets()}>Download Tickets</button>
-                        <button className="btn" onClick={() => setTicketSuccess(false)}>Close</button>
+                        <button className="btn" onClick={() => {setTicketSuccess(false); navigate('/')}}>Close</button>
                     </div>
                     <h3 className="mt-2 underline">Please Download Tickets Before Closing This Alert!</h3>
                 </div>
@@ -375,7 +386,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-
+        setMovieUserDetails: (movieId, userName, userEmail, userSeats) => dispatch(SetUserMovieDetailsAction({movieId, userName, userEmail, userSeats}))
     }
 }
 
