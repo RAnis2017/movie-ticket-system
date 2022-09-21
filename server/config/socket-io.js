@@ -11,15 +11,15 @@ exports.socketConnection = (server, app) => {
       
       socket.join('message-room')
 
-      socket.emit('connection', 'Welcome to iMovies')
+      socket.emit('connection', {clientId: socket.id})
       
       socket.on('ticket-selected', (payload) => {
-        console.log('seat selected: ', payload)
+        // console.log('seat selected: ', payload)
         socket.broadcast.emit('ticket-selected', payload)
       })
 
       socket.on('ticket-deselected', (payload) => {
-        console.log('seat deselected: ', payload)
+        // console.log('seat deselected: ', payload)
         socket.broadcast.emit('ticket-deselected', payload)
       })
 
@@ -29,7 +29,8 @@ exports.socketConnection = (server, app) => {
       })
 
       socket.on('disconnect',(reason)=>{
-        console.log(reason)
+        console.log('client disconnected: ',socket.id)
+        socket.broadcast.emit('disconnect-without-buy', {uniqueId: socket.id})
       })
     })
     

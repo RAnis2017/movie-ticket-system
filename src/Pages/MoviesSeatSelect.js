@@ -11,16 +11,9 @@ import { io } from "socket.io-client"
 import {
     SetUserMovieDetailsAction
   } from "../redux/App/app.actions"
+import Countdown from 'react-countdown';
 
 const clientId = '874157957573-9ghj35jep265q5u0ksfjr5mm22qmbb1k.apps.googleusercontent.com'
-const uniqueIdGenerator = () => {
-    let uniqueId = ""
-    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-    for (let i = 0; i < 5; i++) {
-        uniqueId += possible.charAt(Math.floor(Math.random() * possible.length))
-    }
-    return uniqueId
-}
 
 function MoviesSeatSelect(props) {
     const [seatsPerRow, setSeatsPerRow] = useState(0)
@@ -38,8 +31,10 @@ function MoviesSeatSelect(props) {
     })
     const [showLocationError, setShowLocationError] = useState(false)
     const [pdfUrl, setPdfUrl] = useState("")
-    const [uniqueId, setUniqueId] = useState(uniqueIdGenerator())
+    const [uniqueId, setUniqueId] = useState("")
     const [seatsBought, setSeatsBought] = useState(0)
+    const [timerRanOut, setTimerRanOut] = useState(false)
+    const [showTimer, setShowTimer] = useState(false)
 
     const socket = io('http://localhost:3001');
 
@@ -72,7 +67,9 @@ function MoviesSeatSelect(props) {
         console.log("userMovieDetails", props.userMovieDetails)
         getLocation()
         socket.on('connection', payload => {
-            console.log(payload)
+            const { clientId } = payload
+            console.log('client connected: ', clientId)
+            // setUniqueId(clientId)
         });
 
         socket.on('ticket-selected', payload => {
@@ -92,6 +89,10 @@ function MoviesSeatSelect(props) {
                 setPickedSeats(prev => prev.filter(seat => seat.seatNumber !== payload.seatNumber && seat.uniqueId !== payload.uniqueId))
             }
         });
+
+        setTimeout(() => {
+            setShowTimer(true)
+        }, 1000)
 
         return () => {
             if(pdfUrl === ""){
@@ -268,6 +269,17 @@ function MoviesSeatSelect(props) {
         link.parentNode.removeChild(link);
     }
 
+    const renderer = ({ hours, minutes, seconds, completed }) => {
+        if (completed) {
+          // Render a completed state
+          setSelectedSeats([])
+          socket.emit('disconnect-without-buy', { uniqueId })
+          return setTimerRanOut(true);
+        } else {
+          // Render a countdown
+          return <span className="text-2xl w-16">{minutes}:{seconds}</span>;
+        }
+      };
 
     return (
         <div>
@@ -327,7 +339,18 @@ function MoviesSeatSelect(props) {
 
                         <span className="w-10 h-10 bg-teal-600 rounded-full border-2 border-white ml-6"></span>
                         <span className="ml-2">Being Picked</span>
+
+                        {
+                            timerRanOut === false && showTimer ?
+                            <div className="tooltip tooltip-open tooltip-right tooltip-primary" data-tip="Seats will be cleared on timer end!">
+                                <div className="w-20 ml-8 bg-sky-500 text-white rounded-xl p-1 text-center shadow-lg backdrop-blur-lg border-white border-2">
+                                    <Countdown date={Date.now() + 60000 * 1} renderer={renderer} className="absolute" />
+                                </div>
+                            </div>
+                             : <></>
+                        }
                 </div>
+                
                 {/* <div>
                     {
                         location.lat && location.lng ?
@@ -343,7 +366,7 @@ function MoviesSeatSelect(props) {
                     {
                         rows > 0 && getRows(rows)
                     }
-                </div>
+                </div>                
             </div>
             <div className="flex justify-center mt-5 px-5">
                 <h1 className="text-2xl mr-2 text-gray-600">Total Price:</h1>
@@ -371,6 +394,16 @@ function MoviesSeatSelect(props) {
                         <button className="btn" onClick={() => {setTicketSuccess(false); navigate('/')}}>Close</button>
                     </div>
                     <h3 className="mt-2 underline">Please Download Tickets Before Closing This Alert!</h3>
+                </div>
+            </div>
+
+            <div className={`modal ${timerRanOut ? 'modal-open' : ''}`}>
+                <div className="modal-box w-6/12 max-w-5xl bg-white flex justify-center items-center flex-col">
+                    <h3 className="text-3xl text-purple-600 font-bold">Sorry!</h3>
+                    <h3 className="font-bold text-lg text-black mt-2">Your timer ran out. You need to pick the seats before the timer runs out! Please select again.</h3>
+                    <div className="modal-action">
+                        <button className="btn" onClick={() => {setTimerRanOut(false)}}>Close</button>
+                    </div>
                 </div>
             </div>
         </div>
