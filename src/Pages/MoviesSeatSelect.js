@@ -14,6 +14,7 @@ import {
 import Countdown from 'react-countdown';
 
 const clientId = '874157957573-9ghj35jep265q5u0ksfjr5mm22qmbb1k.apps.googleusercontent.com'
+const socket = io('http://localhost:3001');
 
 function MoviesSeatSelect(props) {
     const [seatsPerRow, setSeatsPerRow] = useState(0)
@@ -35,8 +36,6 @@ function MoviesSeatSelect(props) {
     const [seatsBought, setSeatsBought] = useState(0)
     const [timerRanOut, setTimerRanOut] = useState(false)
     const [showTimer, setShowTimer] = useState(false)
-
-    const socket = io('http://localhost:3001');
 
     const partyPop = useRef(null)
 
@@ -69,7 +68,9 @@ function MoviesSeatSelect(props) {
         socket.on('connection', payload => {
             const { clientId } = payload
             console.log('client connected: ', clientId)
-            // setUniqueId(clientId)
+            setUniqueId(clientId)
+
+            socket.emit('request-seats', {})
         });
 
         socket.on('ticket-selected', payload => {
@@ -101,6 +102,14 @@ function MoviesSeatSelect(props) {
             socket.disconnect()
         }
     }, [])
+
+    socket.on('sync-seats', payload => {
+        console.log('sync-seats', payload)
+        console.log('selectedSeats', selectedSeats)
+        selectedSeats.map(seat => {
+            socket.emit('ticket-selected', { seatNumber: seat, movieId: params.id, uniqueId })
+        })
+    });
 
     useEffect(() => {
         setCurrentPrice(selectedSeats.length * PRICE_PER_SEAT)
@@ -344,7 +353,7 @@ function MoviesSeatSelect(props) {
                             timerRanOut === false && showTimer ?
                             <div className="tooltip tooltip-open tooltip-right tooltip-primary" data-tip="Seats will be cleared on timer end!">
                                 <div className="w-20 ml-8 bg-sky-500 text-white rounded-xl p-1 text-center shadow-lg backdrop-blur-lg border-white border-2">
-                                    <Countdown date={Date.now() + 60000 * 1} renderer={renderer} className="absolute" />
+                                    <Countdown date={Date.now() + 60000 * 5} renderer={renderer} className="absolute" />
                                 </div>
                             </div>
                              : <></>

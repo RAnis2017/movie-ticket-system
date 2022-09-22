@@ -13,6 +13,11 @@ exports.socketConnection = (server, app) => {
 
       socket.emit('connection', {clientId: socket.id})
       
+      socket.on('request-seats', (data) => {
+        console.log('request-seats', data)
+        socket.broadcast.emit('sync-seats', {})
+      })
+
       socket.on('ticket-selected', (payload) => {
         // console.log('seat selected: ', payload)
         socket.broadcast.emit('ticket-selected', payload)
