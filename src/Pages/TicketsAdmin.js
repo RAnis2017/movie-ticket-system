@@ -12,7 +12,7 @@ import Lightbox from 'react-image-lightbox';
 import 'react-image-lightbox/style.css'; // This only needs to be imported once in your app
 
 const fileTypes = ["JPG", "PNG", "GIF"];
-
+const alphabets = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 // dynamic table component
 const Table = ({ data }) => {
@@ -31,17 +31,22 @@ const Table = ({ data }) => {
                     </tr>
                 </thead>
                 <tbody className="">
-                    {data?.length && data?.map(item => (
+                    {data?.length && data?.map(item => {
+                        let seats = item.seats.map(seat => alphabets[seat.split('-')[0]] + '' + seat.split('-')[1]).join(',<br/>')
+                        console.log(item)
+                        return (
                         <tr key={item._id}>
                             <td className="truncate" title={item.Email}>{item.Email}</td>
                             <td className="truncate" title={item.Name}>{item.Name}</td>
                             <td className="truncate" title={item.created_date}>{item.created_date.split('T')[0]}</td>
                             <td className="truncate" title={item.movie.title}>{item.movie.title}</td>
-                            <td className="truncate" title={item.seats.join(',')}>{item.seats.join(',')}</td>
+                            <td className="truncate" title={item.seats.join(',')}><p dangerouslySetInnerHTML={{__html: seats}} /></td>
                             <td className="truncate" title={item.seats_count}>{item.seats_count}</td>
                             <td className="truncate" title={item.total_price}>Rs {item.total_price}</td>
                         </tr>
-                    ))
+                        )
+                    }
+                    )
                     }
                 </tbody>
             </table>

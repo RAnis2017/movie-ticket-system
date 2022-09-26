@@ -20,10 +20,11 @@ import MoviesAdmin from "./Pages/MoviesAdmin";
 import SettingsAdmin from "./Pages/SettingsAdmin";
 import MoviesSeatSelect from "./Pages/MoviesSeatSelect";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCamera, faCog, faLockOpen, faTicket } from "@fortawesome/free-solid-svg-icons";
+import { faCamera, faCog, faLockOpen, faTicket, faTicketAlt } from "@fortawesome/free-solid-svg-icons";
 import Visitors from "./Pages/Visitors";
 import MoviePage from "./Pages/MoviePage";
 import TicketsAdmin from "./Pages/TicketsAdmin";
+import TicketsImportAdmin from "./Pages/TicketsImportAdmin";
 
 const socket = io();
 
@@ -86,6 +87,12 @@ const AppOutlet = () => {
                   <span>Tickets</span>
                 </a>
               </li>
+              <li className="block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-100">
+                <a className="flex items-center" onClick={() => navigate('/admin/tickets-import')}>
+                  <FontAwesomeIcon icon={faTicketAlt} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
+                  <span>Tickets Import</span>
+                </a>
+              </li>
               <li className="block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-300">
                 <a className="flex items-center" onClick={() => navigate('/admin/settings')}>
                   <FontAwesomeIcon icon={faCog} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
@@ -126,6 +133,7 @@ function App() {
             <Route path="admin/dashboard" element={<AdminDashboard />} />
             <Route path="admin/movies" element={<MoviesAdmin />} />
             <Route path="admin/tickets" element={<TicketsAdmin />} />
+            <Route path="admin/tickets-import" element={<TicketsImportAdmin />} />
             <Route path="admin/settings" element={<SettingsAdmin />} />
             <Route path="movies/select" element={<MoviesSeatSelect />} />
           </Route>
