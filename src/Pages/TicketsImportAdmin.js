@@ -155,6 +155,13 @@ function TicketsImportAdmin(props) {
 
             // Do this when headers are mapped
             setCsvData(result)
+            Object.keys(result[0]).forEach((key) => {
+                let found = Object.keys(mapHeaders).findIndex((mapKey) => mapKey === key) > -1
+                if(found) {
+                    setMapHeaders((prev) => ({ ...prev, [key]: key }))
+                }
+            })
+
             setFoundHeaders(Object.keys(result[0]))
         }
         reader.readAsText(file)
@@ -248,24 +255,24 @@ function TicketsImportAdmin(props) {
     }
 
     const mappingHeaders = (actualHeader, foundHeader) => {
-        setMapHeaders((prev) => {
-            return { ...prev, [actualHeader]: foundHeader }
-        })   
+        let newMapHeaders = mapHeaders
+        newMapHeaders[actualHeader] = foundHeader
+        setMapHeaders(newMapHeaders)   
 
         console.log(mapHeaders)
     }
 
     const showPreview = () => {
-        debugger
         const mappedCSV = csvData.map((row) => {
             const mappedRow = {}
             Object.keys(row).forEach((key) => {
-                let actualKey = Object.keys(mapHeaders).find(key => mapHeaders[key] === key)
-                mappedRow[mapHeaders[key]] = row[key]
+                let actualKey = Object.keys(mapHeaders).find(iKey => mapHeaders[iKey] === key)
+                mappedRow[actualKey] = row[key]
             })
             return mappedRow
         })
-        console.log(mappedCSV)
+
+        setCsvData(mappedCSV)
     }
 
     return (
