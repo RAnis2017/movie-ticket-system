@@ -3,6 +3,7 @@ var express = require('express');
 var router = express.Router();
 const mongoose = require("mongoose");
 const multer = require('multer');
+const moment = require('moment');
 const storage = multer.diskStorage({
     destination: (req, file, callBack) => {
         callBack(null, 'uploads')
@@ -33,8 +34,8 @@ const storage = multer.diskStorage({
 
 function convertToSlug(Text) {
     return Text.toLowerCase()
-            .replace(/[^\w ]+/g, '')
-            .replace(/ +/g, '-');
+        .replace(/[^\w ]+/g, '')
+        .replace(/ +/g, '-');
 }
 
 const multi_upload = multer({
@@ -189,28 +190,95 @@ router.get('/get-tickets', (req, res, next) => {
     let ticketModel = mongoose.model('Ticket');
     let movieModel = mongoose.model('Movie');
     ticketModel.find({}, (err, tickets) => {
-      if (err) {
-        console.log(err);
-        res.status(500).json({ 'message': 'Internal server error' });
-      } else {
-        movieModel.find({ slug: tickets.map((ticket) => ticket.movieID) }, (err, movie) => {
-          if (err) {
+        if (err) {
             console.log(err);
             res.status(500).json({ 'message': 'Internal server error' });
-          } else {
-            let ticketsWithMovie = tickets.map((ticket) => {
-                let movieObj = movie.find((movie) => movie.slug === ticket.movieID)
-                return {
-                    ...ticket._doc,
-                    movie: movieObj
+        } else {
+            movieModel.find({ slug: tickets.map((ticket) => ticket.movieID) }, (err, movie) => {
+                if (err) {
+                    console.log(err);
+                    res.status(500).json({ 'message': 'Internal server error' });
+                } else {
+                    let ticketsWithMovie = tickets.map((ticket) => {
+                        let movieObj = movie.find((movie) => movie.slug === ticket.movieID)
+                        return {
+                            ...ticket._doc,
+                            movie: movieObj
+                        }
+                    })
+                    res.status(200).json({ tickets: ticketsWithMovie });
                 }
             })
-            res.status(200).json({ tickets: ticketsWithMovie });
-          }
-        })
-      }
+        }
     })
-  })
+})
 
+router.post('/import-tickets', async (req, res, next) => {
+    let ticketModel = mongoose.model('Ticket');
+    let body = req.body;
+    let errors = [];
+    let success = [];
+    const promisesTickets = await Promise.all(body.csvData.map((ticket, index) => {
+        return new Promise((resolve, reject) => {
+            const alphabets = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const seats = ticket.seats.split(' | ').map((seat) => {
+                return alphabets.indexOf(seat.split('')[0]) + '-' + alphabets.indexOf(seat.split('')[1])
+            }).join(',')
+            console.log(seats)
+
+            const formattedDate = moment(ticket.date, 'DD/MM/YYYY').format('YYYY-MM-DD').toString()
+            
+            // check if ticket already exists
+            ticketModel.findOne({ movieID: ticket.movieID, created_date: formattedDate, seats: seats }, (err, ticket) => {
+                if (err) {
+                    console.log(err);
+                    resolve();
+                    // res.status(500).json({ 'message': 'Internal server error',  });
+                } else {
+                    if (ticket) {
+                        errors.push({
+                            row: index + 1,
+                            error: 'Seat already booked'
+                        });
+                        resolve();
+                    }
+                    else {
+                        ticketModel.create({
+                            movieID: ticket.movie,
+                            seats,
+                            total_price: ticket.total_price,
+                            seats_count: ticket.seats_count,
+                            Name: ticket.Name,
+                            Email: ticket.Email,
+                            created_date: ticket.created_date,
+                            longitude: ticket.longitude,
+                            latitude: ticket.latitude,
+                            ticket_pdf: ticket.ticket_pdf,
+                        }, (err, ticket) => {
+                            if (err) {
+                                console.log(err);
+                                errors.push({
+                                    row: index + 1,
+                                    error: err
+                                });
+                                resolve();
+                            } else {
+                                success.push({
+                                    row: index + 1,
+                                    message: 'Ticket added ' + ticket.seats + ' ' + ticket.created_date + ' ' + ticket.movieID
+                                });
+                                resolve();
+                            }
+                        })
+                    }
+                }
+            })
+
+        })
+    }))
+
+    res.status(200).json({ 'message': 'Tickets imported', errors, success });
+
+})
 
 module.exports = router;

@@ -71,6 +71,8 @@ function TicketsImportAdmin(props) {
         ticket_pdf: '',
     })
     const [csvData, setCsvData] = useState([])
+    const [isPreviewVisible, setIsPreviewVisible] = useState(false)
+    const [errorsObject, setErrorsObject] = useState({})
 
     useEffect(() => {
         if (!props.token) {
@@ -115,7 +117,7 @@ function TicketsImportAdmin(props) {
                 csv.push(headers)
                 data.tickets.forEach((ticket) => {
                     let seats = ticket.seats.map((seat) => `${alphabets[seat.split('-')[0]]}${seat.split('-')[1]}`).join(' | ')
-                    csv.push([ticket._id, ticket.Name, ticket.Email, ticket.seats_count, ticket.movie.title, seats, ticket.total_price, new Date(ticket.created_date).toLocaleDateString(), ticket.latitude, ticket.longitude, ticket.ticket_pdf])
+                    csv.push([ticket._id, ticket.Name, ticket.Email, ticket.seats_count, ticket.movie.slug, seats, ticket.total_price, new Date(ticket.created_date).toLocaleDateString(), ticket.latitude, ticket.longitude, ticket.ticket_pdf])
                 })
 
                 const csvString = csv.map((row) => row.join(',')).join('\n')
@@ -124,6 +126,46 @@ function TicketsImportAdmin(props) {
                     fileName: 'tickets.csv',
                     fileType: 'text/csv',
                 })
+            }
+        }
+    )
+
+    const { mutate: ticketsImport } = useMutation('ticketsImport', (data) =>
+        fetchFunc('http://localhost:3001/admin/import-tickets', 'POST', {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'x-access-token': localStorage.getItem('token'),
+        }, JSON.stringify(data), navigate, 'importTickets'),
+        {
+            refetchOnWindowFocus: false,
+            retryError: false,
+            refetchOnError: false,
+            onSuccess: (data) => {
+                setImporting(false)
+                setIsPreviewVisible(false)
+                setCsvData([])
+                setFoundHeaders([])
+                setMapHeaders({
+                    ID: '',
+                    Email: '',
+                    Name: '',
+                    movie: '',
+                    seats: '',
+                    seats_count: '',
+                    total_price: '',
+                    created_date: '',
+                    longitude: '',
+                    latitude: '',
+                    ticket_pdf: '',
+                })
+                setErrorsObject({})
+
+                if(data?.errors?.length) {
+                    setErrorsObject(data.errors.reduce((acc, curr) => {
+                        acc[curr.row] = curr.error
+                        return acc
+                    }, {}))
+                }
             }
         }
     )
@@ -170,25 +212,20 @@ function TicketsImportAdmin(props) {
     const checkLoadedCSV = (csv) => {
         const csvHeaders = csv[0]
         let valid = true
+        const errorsObject = {}
         headers.forEach((header) => {
-            if (!csvHeaders[header]) {
-                valid = false
+            if(header !== 'longitude' && header !== 'latitude' && header !== 'ticket_pdf') {
+                if (!csvHeaders[header]) {
+                    valid = false
+                    errorsObject[header] = 'Required'
+                }
             }
-
-            // check types correct
-
-            // if (header === 'ID') {
-            //     csv.forEach((row) => {
-            //         if (row[header].length !== 24) {
-            //             valid = false
-            //         }
-            //     })
-            // }
 
             if (header === 'seats_count' || header === 'total_price') {
                 csv.forEach((row) => {
                     if (isNaN(row[header])) {
                         valid = false
+                        errorsObject[header] = 'Must be a number'
                     }
                 })
             }
@@ -198,6 +235,7 @@ function TicketsImportAdmin(props) {
                     let isValid = moment(row[header], "DD/MM/YYYY", true).isValid()
                     if (!isValid) {
                         valid = false
+                        errorsObject[header] = 'Must be a date'
                     }
                 })
             }
@@ -208,6 +246,7 @@ function TicketsImportAdmin(props) {
                     seats.forEach((seat) => {
                         if (seat.length < 2) {
                             valid = false
+                            errorsObject[header] = 'Must be valid form of seats (A1 | B2 | C3)'
                         }
                     })
                 })
@@ -217,6 +256,7 @@ function TicketsImportAdmin(props) {
                 csv.forEach((row) => {
                     if (row[header].length < 1) {
                         valid = false
+                        errorsObject[header] = 'Invalid movie. Must be a string'
                     }
                 })
             }
@@ -225,32 +265,39 @@ function TicketsImportAdmin(props) {
                 csv.forEach((row) => {
                     if (row[header].length < 1) {
                         valid = false
+                        errorsObject[header] = 'Invalid name or email. Must be a string and not empty'
                     }
                 })
             }
 
-            if (header === 'ticket_pdf') {
-                csv.forEach((row) => {
-                    if (row[header].length < 1) {
-                        valid = false
-                    }
-                })
-            }
+            // Ticket PDF is not required
+            // if (header === 'ticket_pdf') {
+            //     csv.forEach((row) => {
+            //         if (row[header].length < 1) {
+            //             valid = false
+            //         }
+            //     })
+            // }
 
-            if (header === 'latitude' || header === 'longitude') {
-                csv.forEach((row) => {
-                    if (isNaN(row[header])) {
-                        valid = false
-                    }
-                })
-            }
+            // Longitude and latitude are not required
+            // if (header === 'latitude' || header === 'longitude') {
+            //     csv.forEach((row) => {
+            //         if (isNaN(row[header])) {
+            //             valid = false
+            //         }
+            //     })
+            // }
 
         })
 
         if (valid) {
-            // importTicketsToDB(csv)
+            setIsPreviewVisible(true)
         } else {
-            alert('Invalid CSV')
+            setErrorsObject({
+                ...errorsObject,
+                csv: 'CSV file is not valid'
+            })
+            setIsPreviewVisible(true)
         }
     }
 
@@ -273,6 +320,15 @@ function TicketsImportAdmin(props) {
         })
 
         setCsvData(mappedCSV)
+        checkLoadedCSV(mappedCSV)
+    }
+
+    const importCSV = () => {
+        debugger
+        ticketsImport({
+            csvData,
+            mapHeaders
+        })
     }
 
     return (
@@ -293,7 +349,7 @@ function TicketsImportAdmin(props) {
                 }
 
                 {
-                    importing && foundHeaders.length > 0 ?
+                    importing && foundHeaders.length > 0 && isPreviewVisible === false ?
                         <div className="p-4 bg-slate-400 rounded-md shadow-md">
                             <p className="font-bold text-white">Select the mappings for headers:</p>
                             <div>
@@ -324,6 +380,63 @@ function TicketsImportAdmin(props) {
                                 <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-5 ml-5" onClick={() => showPreview()}>Preview</button>
 
                             </div>
+                        </div>
+                        : <></>
+                }
+                {
+                    importing && foundHeaders.length > 0 && isPreviewVisible ?
+                        <div className="p-4 bg-slate-700 rounded-md shadow-md w-5/6 h-1/6">
+                            <div className={` alert alert-error mt-2 flex flex-col items-start shadow-lg ${errorsObject.csv ?  '' : 'hidden'}`}>
+                                {
+                                    Object.keys(errorsObject).map((key) => {
+                                        return (
+                                            <div>
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                <p className="text-white">{errorsObject[key]}</p>
+                                            </div>
+                                        )
+                                    })
+                                }
+                            </div>
+                            <p className="font-bold text-white">Preview:</p>
+                            <div className="overflow-scroll text-white">
+                                <table className="table-auto">
+                                    <thead>
+                                        <tr>
+                                            {
+                                                headers.map((header) => {
+                                                    return (
+                                                        <th className="px-4 py-2">{header}</th>
+                                                    )
+                                                }
+                                                )
+                                            }
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {
+                                            csvData.map((row, index) => {
+                                                if (index < 5) {
+                                                    return (
+                                                        <tr>
+                                                            {
+                                                                headers.map((header) => {
+                                                                    return (
+                                                                        <td className="border px-4 py-2">{row[header]}</td>
+                                                                    )
+                                                                }
+                                                                )
+                                                            }
+                                                        </tr>
+                                                    )
+                                                }
+                                            }
+                                            )
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-5 ml-5" onClick={() => importCSV()}>Import</button>
                         </div>
                         : <></>
                 }

@@ -67,7 +67,7 @@ const AppOutlet = () => {
           </nav>
         </header>
         <div className="w-full flex">
-          <div className="w-64 sm:w-1/2 md:w-64 h-100 bg-gray-900 shadow sm:shadow-md md:shadow-lg lg:shadow-xl xl:shadow-2xl border border-gray-900">
+          <div className="w-1/6 sm:w-1/2 md:w-64 h-100 bg-gray-900 shadow sm:shadow-md md:shadow-lg lg:shadow-xl xl:shadow-2xl border border-gray-900">
             <div className="flex flex-col items-center mt-5 mb-5">
               <img src="https://via.placeholder.com/400x400"
                 alt="alt placeholder" className="w-10 h-10 mb-2 rounded-full" />
@@ -107,7 +107,7 @@ const AppOutlet = () => {
               </li>
             </ul>
           </div>
-          <main className="w-full h-full min-h-screen">
+          <main className="w-5/6 h-full min-h-screen">
             <Outlet />
           </main>
         </div>
