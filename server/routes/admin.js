@@ -222,22 +222,26 @@ router.post('/import-tickets', async (req, res, next) => {
         return new Promise((resolve, reject) => {
             const alphabets = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             const seats = ticket.seats.split(' | ').map((seat) => {
-                return alphabets.indexOf(seat.split('')[0]) + '-' + alphabets.indexOf(seat.split('')[1])
-            }).join(',')
+                return alphabets.indexOf(seat.split('')[0]) + '-' + seat.slice(1)
+            })
             console.log(seats)
 
-            const formattedDate = moment(ticket.date, 'DD/MM/YYYY').format('YYYY-MM-DD').toString()
-            
+            const startDay = moment(ticket.created_date, 'DD/MM/YYYY').startOf('day')
+            const endDay = moment(ticket.created_date, 'DD/MM/YYYY').endOf('day')
+
             // check if ticket already exists
-            ticketModel.findOne({ movieID: ticket.movieID, created_date: formattedDate, seats: seats }, (err, ticket) => {
+            ticketModel.findOne({ 
+                movieID: ticket.movie, 
+                created_date: {"$gte": startDay, "$lt": endDay}, 
+                seats: seats }, (err, ticketI) => {
                 if (err) {
                     console.log(err);
                     resolve();
                     // res.status(500).json({ 'message': 'Internal server error',  });
                 } else {
-                    if (ticket) {
+                    if (ticketI) {
                         errors.push({
-                            row: index + 1,
+                            row: index,
                             error: 'Seat already booked'
                         });
                         resolve();
@@ -250,7 +254,7 @@ router.post('/import-tickets', async (req, res, next) => {
                             seats_count: ticket.seats_count,
                             Name: ticket.Name,
                             Email: ticket.Email,
-                            created_date: ticket.created_date,
+                            created_date: startDay,
                             longitude: ticket.longitude,
                             latitude: ticket.latitude,
                             ticket_pdf: ticket.ticket_pdf,
@@ -258,14 +262,14 @@ router.post('/import-tickets', async (req, res, next) => {
                             if (err) {
                                 console.log(err);
                                 errors.push({
-                                    row: index + 1,
+                                    row: index,
                                     error: err
                                 });
                                 resolve();
                             } else {
                                 success.push({
-                                    row: index + 1,
-                                    message: 'Ticket added ' + ticket.seats + ' ' + ticket.created_date + ' ' + ticket.movieID
+                                    row: index,
+                                    message: 'Ticket added ' + ticket.seats + ' ' + startDay + ' ' + ticket.movieID
                                 });
                                 resolve();
                             }
