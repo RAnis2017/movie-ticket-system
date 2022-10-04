@@ -47,6 +47,19 @@ function Visitors(props) {
         }
     )
 
+    const { isLoading: navigationsLoading, isSuccess: navigationsSuccess, data: navigations } = useQuery('navigations', () =>
+        fetchFunc(`http://localhost:3001/admin/get-navigations?hiearchy=true`, 'GET', {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'x-access-token': localStorage.getItem('token'),
+        }, null, navigate, 'readAllNavigations'),
+        {
+            refetchOnWindowFocus: false,
+            retryError: false,
+            refetchOnError: false
+        }
+    )
+
     const navigate = useNavigate()
 
     return (
@@ -62,14 +75,47 @@ function Visitors(props) {
                     </button>
                 </div>
                 <div className="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
-                    <div className="text-sm lg:flex-grow">
-                        <a href="#now-showing" className="block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
-                            Now Showing
-                        </a>
-                        <a href="#upcoming-movies" className="block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
-                            Upcoming Movies
-                        </a>
-                    </div>
+                    {
+                        <div className="text-sm lg:flex-grow">
+                            <a href="#now-showing" className="block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
+                                Now Showing
+                            </a>
+                            <a href="#upcoming-movies" className="block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
+                                Upcoming Movies
+                            </a>
+                            {
+                                navigationsSuccess && navigations.map((navigation, index) => {
+                                    return (
+                                        <>
+                                        {
+                                            navigation.children.length > 0 ?
+                                            <div className="dropdown dropdown-hover">
+                                            <label tabIndex={0} className="block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4" onClick={() => navigation.data.URL}>{navigation.text}</label>
+                                            <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+                                                {
+                                                    navigation.children.map((child, index) => {
+                                                        return (
+                                                            <li>
+                                                                <a href={child.data.URL} className="block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">{child.text}</a>
+                                                            </li>
+                                                        )
+                                                    }
+                                                    )
+                                                }
+                                            </ul>
+                                            </div> :
+                                            <a href={`${navigation.data.URL}`} className="block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
+                                                {navigation.text}
+                                            </a>
+                                        }
+                                        </>
+                                        
+                                    )
+                                }
+                                )
+                            }
+                        </div>
+                    }
                     <div>
                         {
                             localStorage.getItem('token') ?
