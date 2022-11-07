@@ -55,6 +55,21 @@ const multi_upload = multer({
     },
 }).array('images', 10)
 
+const single_upload = multer({
+    dest: 'uploads/',
+    storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 1MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
+            cb(null, true);
+        } else {
+            cb(null, false);
+            const err = new Error('Only .png, .jpg and .jpeg format allowed!')
+            err.name = 'ExtensionError'
+            return cb(err);
+        }
+    },
+}).single('image')
 
 router.post('/add-movie', (req, res, next) => {
     multi_upload(req, res, function (err) {
@@ -230,10 +245,11 @@ router.post('/import-tickets', async (req, res, next) => {
             const endDay = moment(ticket.created_date, 'DD/MM/YYYY').endOf('day')
 
             // check if ticket already exists
-            ticketModel.findOne({ 
-                movieID: ticket.movie, 
-                created_date: {"$gte": startDay, "$lt": endDay}, 
-                seats: seats }, (err, ticketI) => {
+            ticketModel.findOne({
+                movieID: ticket.movie,
+                created_date: { "$gte": startDay, "$lt": endDay },
+                seats: seats
+            }, (err, ticketI) => {
                 if (err) {
                     console.log(err);
                     resolve();
@@ -285,80 +301,42 @@ router.post('/import-tickets', async (req, res, next) => {
 
 })
 
-router.get('/get-navigations', (req, res, next) => {
-    let navigationModel = mongoose.model('Navigation');
-    navigationModel.find({}, (err, navigations) => {
-        if (err) {
-            console.log(err);
-            res.status(500).json({ 'message': 'Internal server error' });
-        } else {
-            navigations = navigations.map((navigation) => {
-                const objToReturn = {
-                    id: navigation._id.toString(),
-                    text: navigation.Title,
-                    parent: navigation.parentID.toString(),
-                    droppable: true,
-                    data: {
-                        URL: navigation.URL,
-                        Title: navigation.Title,
-                        parentID: navigation.parentID,
-                        _target: navigation._target,
-                        _id: navigation._id
-                    }
-                }
-
-                if(req.query.hiearchy === 'true') {
-                    objToReturn.children = [];
-                }
-
-                return objToReturn;
-            })
-            if(req.query.hiearchy === 'true') {
-                let idsToRemove = [];
-                navigations = navigations.map((navigation) => {
-                    if(navigation.parent === '0') {
-                        let children = navigations.find((nav) => nav.parent === navigation.id)
-                        // remove all found children
-                        if(children) {
-                            if(children.length) {
-                                navigation.children = children;
-                            } else {
-                                navigation.children = [children];
-                            }
-                            idsToRemove.push(children.length ? children.map((child) => child.id) : children.id)
-                        } else {
-                            children = []
-                        }
-                    }
-                    return navigation
-                })
-
-                // remove all found children
-                navigations = navigations.filter((navigation) => !idsToRemove.includes(navigation.id))
-                res.status(200).json(navigations);
-            } else {
-                res.status(200).json(navigations);
-            }
-        }
-    }
-    )
-})
-
 router.post('/add-navigation', (req, res, next) => {
     let navigationModel = mongoose.model('Navigation');
-    navigationModel.create({
-        Title: req.body.Title,
-        URL: req.body.URL,
-        _target: req.body._target,
-        parentID: 0
-    }, (err, navigation) => {
-        if (err) {
-            console.log(err);
-            res.status(500).json({ 'message': 'Internal server error' });
-        } else {
-            res.status(200).json({ 'message': 'Navigation added' });
-        }
-    })
+    if (req.body.length && req.body.length > 0) {
+        const navigations = req.body.map((navigation) => {
+            return {
+                Title: navigation.Title,
+                URL: navigation.URL,
+                _target: navigation._target,
+                parentID: 0,
+                order: navigation.order,
+            }
+        })
+        navigationModel.insertMany(navigations, (err, navigation) => {
+            if (err) {
+                console.log(err);
+                res.status(500).json({ 'message': 'Internal server error' });
+            } else {
+                res.status(200).json({ 'message': 'Navigation added' });
+            }
+        })
+    } else {
+        navigationModel.create({
+            Title: req.body.Title,
+            URL: req.body.URL,
+            _target: req.body._target,
+            parentID: 0,
+            order: req.body.order,
+        }, (err, navigation) => {
+            if (err) {
+                console.log(err);
+                res.status(500).json({ 'message': 'Internal server error' });
+            } else {
+                res.status(200).json({ 'message': 'Navigation added' });
+            }
+        })
+    }
 })
 
 router.put('/update-navigation/:id', (req, res, next) => {
@@ -371,6 +349,7 @@ router.put('/update-navigation/:id', (req, res, next) => {
         updateObj.Title = req.body.Title
         updateObj.URL = req.body.URL
         updateObj._target = req.body._target
+        updateObj.order = req.body.order
     }
 
     navigationModel.updateOne({ _id: req.params.id }, updateObj, (err, navigation) => {
@@ -384,9 +363,45 @@ router.put('/update-navigation/:id', (req, res, next) => {
     )
 })
 
+router.put('/update-navigation-order', (req, res, next) => {
+    let navigationModel = mongoose.model('Navigation');
+    let updateObj = [
+        ...req.body.map((navigation) => {
+            return {
+                _id: navigation._id,
+                Title: navigation.Title,
+                URL: navigation.URL,
+                _target: navigation._target,
+                parentID: navigation.parentID,
+                order: navigation.order
+            }
+        })
+    ]
+    navigationModel.bulkWrite(
+        updateObj.map((navigation) => {
+            return {
+                updateOne: {
+                    filter: { _id: navigation._id },
+                    update: {
+                        order: navigation.order
+                    }
+                }
+            }
+        })
+        , (err, navigation) => {
+            if (err) {
+                console.log(err);
+                res.status(500).json({ 'message': 'Internal server error' });
+            } else {
+                res.status(200).json({ 'message': 'Navigation updated' });
+            }
+        }
+    )
+})
+
 router.delete('/delete-navigation/:id', (req, res, next) => {
     let navigationModel = mongoose.model('Navigation');
-    navigationModel.deleteOne({ _id: req.params.id }, (err, navigation) => {
+    navigationModel.deleteMany({$or:[{"parentID": req.params.id.toString()},{ _id: req.params.id }]}, (err, navigation) => {
         if (err) {
             console.log(err);
             res.status(500).json({ 'message': 'Internal server error' });
@@ -396,5 +411,138 @@ router.delete('/delete-navigation/:id', (req, res, next) => {
     }
     )
 })
-        
+
+router.post('/add-page', (req, res, next) => {
+    single_upload(req, res, (err) => {
+        if (err) {
+            console.log(err);
+            res.status(500).json({ 'message': 'Internal server error' });
+        } else {
+            let fileName = ''
+            console.dir(req.file)
+            fileName = req.file.filename
+            let body = req.body;
+            console.log(req.body, fileName);
+            let pageModel = mongoose.model('Page');
+            pageModel.create({
+                Title: body.Title,
+                Slug: body.Slug,
+                Description: body.Description,
+                Image: fileName,
+                parentID: body.Parent ? body.Parent : 0
+            }, (err, page) => {
+                if (err) {
+                    console.log(err);
+                    res.status(500).json({ 'message': 'Internal server error' });
+                } else {
+                    res.status(200).json({ 'message': 'Page added' });
+                }
+            })
+        }
+    })
+})
+
+router.put('/update-page/:id', (req, res, next) => {
+    single_upload(req, res, (err) => {
+        if (err) {
+            console.log(err);
+            res.status(500).json({ 'message': 'Internal server error' });
+        } else {
+            let fileName = null
+            fileName = req?.file?.filename
+            let body = req.body;
+            console.log(req.body, fileName);
+            let pageModel = mongoose.model('Page');
+            let updateObj = {
+                parentID: req.body.Parent ? req.body.Parent : 0
+            }
+
+            if (req.body.Title) {
+                updateObj.Title = body.Title
+                updateObj.Slug = body.Slug
+                updateObj.Description = body.Description
+                updateObj.Image = fileName ? fileName : body.Image
+            }
+
+            pageModel.updateOne({ _id: req.params.id }, updateObj, (err, page) => {
+                if (err) {
+                    console.log(err);
+                    res.status(500).json({ 'message': 'Internal server error' });
+                } else {
+                    res.status(200).json({ 'message': 'Page updated' });
+                }
+            }
+            )
+        }
+    })
+})
+
+router.delete('/delete-page/:id', (req, res, next) => {
+    let pageModel = mongoose.model('Page');
+    pageModel.deleteOne({ _id: req.params.id }, (err, page) => {
+        if (err) {
+            console.log(err);
+            res.status(500).json({ 'message': 'Internal server error' });
+        } else {
+            res.status(200).json({ 'message': 'Page deleted' });
+        }
+    }
+    )
+})
+
+router.put('/update-blocks-order', (req, res, next) => {
+    let blockModel = mongoose.model('Block');
+    let updateObj = [
+        ...req.body.map((block) => {
+            return {
+                _id: block._id,
+                Name: block.Name,
+                Content: block.Content,
+                parentID: block.parentID,
+                order: block.order
+            }
+        })
+    ]
+    blockModel.bulkWrite(
+        updateObj.map((block) => {
+            return {
+                updateOne: {
+                    filter: { _id: block._id },
+                    update: {
+                        order: block.order
+                    }
+                }
+            }
+        })
+        , (err, block) => {
+            if (err) {
+                console.log(err);
+                res.status(500).json({ 'message': 'Internal server error' });
+            } else {
+                res.status(200).json({ 'message': 'Block updated' });
+            }
+        }
+    )
+})
+
+router.put('/update-blocks/:id', (req, res, next) => {
+    let blockModel = mongoose.model('Block');
+    let updateObj =  {
+        _id: req.body._id,
+        Name: req.body.Name,
+        Content: req.body.Content,
+        parentID: '0',
+        order: req.body.order
+    }
+    blockModel.updateOne({ _id: req.params.id }, updateObj, (err, block) => {
+        if (err) {
+            console.log(err);
+            res.status(500).json({ 'message': 'Internal server error' });
+        } else {
+            res.status(200).json({ 'message': 'Block updated' });
+        }
+    }
+    )
+})
+
 module.exports = router;

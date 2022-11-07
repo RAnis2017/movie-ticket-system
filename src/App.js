@@ -6,7 +6,8 @@ import {
   Routes,
   Route,
   Outlet,
-  useNavigate
+  useNavigate,
+  useLocation
 } from "react-router-dom";
 import { useQuery } from 'react-query'
 import Login from "./Pages/Login";
@@ -20,12 +21,15 @@ import MoviesAdmin from "./Pages/MoviesAdmin";
 import SettingsAdmin from "./Pages/SettingsAdmin";
 import MoviesSeatSelect from "./Pages/MoviesSeatSelect";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCamera, faCog, faLockOpen, faTicket, faTicketAlt } from "@fortawesome/free-solid-svg-icons";
+import { faCamera, faCog, faLockOpen, faNavicon, faTicket, faTicketAlt, faParagraph, faBoxes } from "@fortawesome/free-solid-svg-icons";
 import Visitors from "./Pages/Visitors";
 import MoviePage from "./Pages/MoviePage";
 import TicketsAdmin from "./Pages/TicketsAdmin";
 import TicketsImportAdmin from "./Pages/TicketsImportAdmin";
 import NavigationAdmin from "./Pages/NavigationAdmin";
+import PageAdmin from "./Pages/PageAdmin";
+import PageContent from "./Pages/PageContent";
+import BlocksAdmin from "./Pages/BlocksAdmin";
 
 const socket = io();
 
@@ -33,6 +37,7 @@ const clientId = '874157957573-9ghj35jep265q5u0ksfjr5mm22qmbb1k.apps.googleuserc
 
 const AppOutlet = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const onLogoutSuccess = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('email')
@@ -76,37 +81,49 @@ const AppOutlet = () => {
               <span>{localStorage.getItem('email')}</span>
             </div>
             <ul className="text-gray-400">
-              <li className="block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-100">
+              <li className={`block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-100 ${location.pathname === '/admin/movies' ? 'bg-gray-800 text-gray-100' : ''}`}>
                 <a className="flex items-center" onClick={() => navigate('/admin/movies')}>
                   <FontAwesomeIcon icon={faCamera} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
                   <span>Movies</span>
                 </a>
               </li>
-              <li className="block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-100">
+              <li className={`block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-100 ${location.pathname === '/admin/tickets' ? 'bg-gray-800 text-gray-100' : ''}`}>
                 <a className="flex items-center" onClick={() => navigate('/admin/tickets')}>
                   <FontAwesomeIcon icon={faTicket} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
                   <span>Tickets</span>
                 </a>
               </li>
-              <li className="block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-100">
+              <li className={`block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-100 ${location.pathname === '/admin/tickets-import' ? 'bg-gray-800 text-gray-100' : ''}`}>
                 <a className="flex items-center" onClick={() => navigate('/admin/tickets-import')}>
                   <FontAwesomeIcon icon={faTicketAlt} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
                   <span>Tickets Import</span>
                 </a>
               </li>
-              <li className="block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-100">
+              <li className={`block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-100 ${location.pathname === '/admin/navigation-crud' ? 'bg-gray-800 text-gray-100' : ''}`}>
                 <a className="flex items-center" onClick={() => navigate('/admin/navigation-crud')}>
-                  <FontAwesomeIcon icon={faTicketAlt} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
+                  <FontAwesomeIcon icon={faNavicon} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
                   <span>Navigations</span>
                 </a>
               </li>
-              <li className="block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-300">
+              <li className={`block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-100 ${location.pathname === '/admin/pages-crud' ? 'bg-gray-800 text-gray-100' : ''}`}>
+                <a className="flex items-center" onClick={() => navigate('/admin/pages-crud')}>
+                  <FontAwesomeIcon icon={faParagraph} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
+                  <span>Pages</span>
+                </a>
+              </li>
+              <li className={`block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-100 ${location.pathname === '/admin/blocks-crud' ? 'bg-gray-800 text-gray-100' : ''}`}>
+                <a className="flex items-center" onClick={() => navigate('/admin/blocks-crud')}>
+                  <FontAwesomeIcon icon={faBoxes} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
+                  <span>Blocks</span>
+                </a>
+              </li>
+              <li className={`block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-100 ${location.pathname === '/admin/settings' ? 'bg-gray-800 text-gray-100' : ''}`}>
                 <a className="flex items-center" onClick={() => navigate('/admin/settings')}>
                   <FontAwesomeIcon icon={faCog} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
                   <span>Settings</span>
                 </a>
               </li>
-              <li className="block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-300">
+              <li className={`block cursor-pointer p-2 hover:bg-gray-800 hover:text-gray-100`}>
                 <a className="flex items-center" onClick={() => signOut()}>
                   <FontAwesomeIcon icon={faLockOpen} className="w-8 p-2 bg-gray-800 rounded-full mx-2" />
                   <span>Logout</span>
@@ -134,6 +151,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Visitors />} />
+          <Route path="/pages/*" element={<PageContent />} />
           <Route path="/movies/:id" element={<MoviePage />} />
           <Route path="/movies/buy/:id" element={<MoviesSeatSelect />} />
           <Route element={<AppOutlet />}>
@@ -142,8 +160,10 @@ function App() {
             <Route path="admin/tickets" element={<TicketsAdmin />} />
             <Route path="admin/tickets-import" element={<TicketsImportAdmin />} />
             <Route path="admin/navigation-crud" element={<NavigationAdmin />} />
+            <Route path="admin/pages-crud" element={<PageAdmin />} />
             <Route path="admin/settings" element={<SettingsAdmin />} />
             <Route path="movies/select" element={<MoviesSeatSelect />} />
+            <Route path="admin/blocks-crud" element={<BlocksAdmin />} />
           </Route>
           <Route path="*" element={<Login />} />
         </Routes>

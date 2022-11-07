@@ -16,6 +16,8 @@ require('./models/movies')
 require('./models/settings')
 require('./models/tickets')
 require('./models/navigations')
+require('./models/pages')
+require('./models/blocks')
 
 const express = require('express')
 const app = express()

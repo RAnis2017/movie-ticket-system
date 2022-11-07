@@ -14,6 +14,10 @@ const NavigationSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    order: {
+        type: Number,
+        required: true,
+    },
     parentID: {
         type: String,
         required: true,

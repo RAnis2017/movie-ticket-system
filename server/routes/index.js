@@ -372,6 +372,140 @@ router.get('/download-tickets/:ticketID', (req, res, next) => {
   })
 })
 
+function getChildrenRecursive(navigation, navigations) {
+  navigation.children = [];
+  navigations.forEach((child) => {
+    if (child.parent === navigation.id) {
+      navigation.children.push({
+        ...child,
+        children: getChildrenRecursive(child, navigations)
+      })
+    }
+  })
+  return navigation.children;
+}
+
+function getHiearchicalDataRecursive(navigations) {
+  let data = [];
+  navigations.forEach((navigation) => {
+    if (navigation.parent === '0') {
+      data.push({
+        ...navigation
+      })
+    }
+  })
+
+  data.forEach((navigation) => {
+    getChildrenRecursive(navigation, navigations);
+  })
+
+  return data;
+}
+
+router.get('/get-navigations', (req, res, next) => {
+  let navigationModel = mongoose.model('Navigation');
+  navigationModel.find({}, (err, navigations) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ 'message': 'Internal server error' });
+    } else {
+      // order navigations by order
+      navigations.sort((a, b) => {
+        return a.order - b.order;
+      })
+      navigations = navigations.map((navigation) => {
+        const objToReturn = {
+          id: navigation._id.toString(),
+          text: navigation.Title,
+          parent: navigation.parentID.toString(),
+          droppable: true,
+          data: {
+            URL: navigation.URL,
+            Title: navigation.Title,
+            parentID: navigation.parentID,
+            _target: navigation._target,
+            _id: navigation._id,
+            order: navigation.order,
+          }
+        }
+
+        if (req.query.hiearchy === 'true') {
+          objToReturn.children = [];
+        }
+
+        return objToReturn;
+      })
+      if (req.query.hiearchy === 'true') {
+        navigations = getHiearchicalDataRecursive(navigations);
+        res.status(200).json(navigations);
+      } else {
+        res.status(200).json(navigations);
+      }
+    }
+  }
+  )
+})
+
+router.get('/get-pages', (req, res, next) => {
+  let pageModel = mongoose.model('Page');
+  pageModel.find({}, (err, pages) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ 'message': 'Internal server error' });
+    } else {
+      res.status(200).json(pages);
+    }
+  }
+  )
+})
+
+router.get('/get-page', (req, res, next) => {
+  let pageModel = mongoose.model('Page');
+  pageModel.findOne({
+    Slug: '/'+req.query.id
+  }, (err, pages) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ 'message': 'Internal server error' });
+    } else {
+      res.status(200).json(pages);
+    }
+  }
+  )
+})
+
+router.get('/get-blocks', (req, res, next) => {
+  let blockModel = mongoose.model('Block');
+  blockModel.find({}, (err, blocks) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ 'message': 'Internal server error' });
+    } else {
+      blocks.sort((a, b) => {
+        return a.order - b.order;
+      })
+      blocks = blocks.map((block) => {
+        return {
+          id: block._id.toString(),
+          text: block.Name,
+          droppable: false,
+          parent: '0',
+          data: {
+            Name: block.Name,
+            _id: block._id,
+            order: block.order,
+            Content: block.Content,
+          }
+        }
+      })
+
+      res.status(200).json(blocks);
+    }
+  }
+  )
+})
+
+
 router.use(auth);
 
 router.use('/admin', require('./admin'));
